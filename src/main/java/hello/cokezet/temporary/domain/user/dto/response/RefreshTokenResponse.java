@@ -1,4 +1,4 @@
-package hello.cokezet.temporary.domain.user.dto;
+package hello.cokezet.temporary.domain.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

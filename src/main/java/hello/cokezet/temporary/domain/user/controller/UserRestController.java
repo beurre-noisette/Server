@@ -1,7 +1,7 @@
 package hello.cokezet.temporary.domain.user.controller;
 
-import hello.cokezet.temporary.domain.user.dto.ProfileResponse;
-import hello.cokezet.temporary.domain.user.dto.ProfileUpdateRequest;
+import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
+import hello.cokezet.temporary.domain.user.dto.request.ProfileUpdateRequest;
 import hello.cokezet.temporary.domain.user.service.UserProfileService;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import lombok.RequiredArgsConstructor;

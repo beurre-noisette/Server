@@ -1,9 +1,9 @@
 package hello.cokezet.temporary.domain.user.controller;
 
-import hello.cokezet.temporary.domain.user.dto.LoginResponse;
-import hello.cokezet.temporary.domain.user.dto.RefreshTokenRequest;
-import hello.cokezet.temporary.domain.user.dto.RefreshTokenResponse;
-import hello.cokezet.temporary.domain.user.dto.SocialLoginRequest;
+import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
+import hello.cokezet.temporary.domain.user.dto.request.RefreshTokenRequest;
+import hello.cokezet.temporary.domain.user.dto.response.RefreshTokenResponse;
+import hello.cokezet.temporary.domain.user.dto.request.SocialLoginRequest;
 import hello.cokezet.temporary.domain.user.service.GoogleLoginService;
 import hello.cokezet.temporary.domain.user.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;

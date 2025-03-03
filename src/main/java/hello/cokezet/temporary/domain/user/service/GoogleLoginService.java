@@ -1,6 +1,6 @@
 package hello.cokezet.temporary.domain.user.service;
 
-import hello.cokezet.temporary.domain.user.dto.LoginResponse;
+import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
 import hello.cokezet.temporary.domain.user.model.RefreshToken;
 import hello.cokezet.temporary.domain.user.model.SocialAccount;
 import hello.cokezet.temporary.domain.user.model.User;
