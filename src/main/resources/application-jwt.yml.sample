@@ -1,3 +1,4 @@
 jwt:
   secret: ${JWT_SECRET}
-  token-validity-in-seconds: ${JWT_EXPIRATION}
+  access-token-validity-in-seconds: ${JWT_ACCESS_EXPIRATION}
+  refresh-token-validity-in-seconds: ${JWT_REFRESH_EXPIRATION}

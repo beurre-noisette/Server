@@ -17,17 +17,20 @@ import java.util.Map;
 public class JwtProvider {
 
     private final Key key;
-    private final long tokenValidityInMilliseconds;
+    private final long accessTokenValidityInMilliseconds;
+    private final long refreshTokenValidityInMilliseconds;
 
     public JwtProvider(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds) {
+            @Value("${jwt.access-token-validity-in-seconds}") long accessTokenValidityInSeconds,
+            @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityInSeconds) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
-        this.tokenValidityInMilliseconds = tokenValidityInSeconds * 1000;
+        this.accessTokenValidityInMilliseconds = accessTokenValidityInSeconds * 1000;
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInSeconds * 1000;
     }
 
 
-    public String generateToken(Long userId, String email, Role role) {
+    public String generateAccessToken(Long userId, String email, Role role) {
         Map<String, Object> claims = new HashMap<>();
 
         claims.put("id", userId);
@@ -35,11 +38,22 @@ public class JwtProvider {
         claims.put("role", role.name());
 
         long now = new Date().getTime();
-        Date validity = new Date(now + tokenValidityInMilliseconds);
+        Date validity = new Date(now + accessTokenValidityInMilliseconds);
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userId.toString())
+                .setIssuedAt(new Date(now))
+                .setExpiration(validity)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public String generateRefreshToken() {
+        long now = new Date().getTime();
+        Date validity = new Date(now + refreshTokenValidityInMilliseconds);
+
+        return Jwts.builder()
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS512)
@@ -62,5 +76,9 @@ public class JwtProvider {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public Date getExpirationDateFromToken(String token) {
+        return getClaimsFromToken(token).getExpiration();
     }
 }

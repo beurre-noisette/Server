@@ -1,6 +1,7 @@
 package hello.cokezet.temporary.domain.user.service;
 
-import hello.cokezet.temporary.domain.user.dto.LoginResponse;
+import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
+import hello.cokezet.temporary.domain.user.model.RefreshToken;
 import hello.cokezet.temporary.domain.user.model.SocialAccount;
 import hello.cokezet.temporary.domain.user.model.User;
 import hello.cokezet.temporary.domain.user.repository.SocialAccountRepository;
@@ -27,10 +28,11 @@ public class GoogleLoginService implements SocialLoginService {
     private final SocialAccountRepository socialAccountRepository;
     private final JwtProvider jwtProvider;
     private final JwtDecoder jwtDecoder;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     @Transactional
-    public LoginResponse login(String idToken, String deviceType) {
+    public LoginResponse login(String idToken, String deviceType, String deviceInfo) {
         if (!"android".equalsIgnoreCase(deviceType)) {
             throw new IllegalArgumentException("Google 로그인은 Android 기기만 지원합니다.");
         }
@@ -85,11 +87,15 @@ public class GoogleLoginService implements SocialLoginService {
                 socialAccountRepository.save(socialAccount);
             }
 
-            // JWT 토큰 생성
-            String token = jwtProvider.generateToken(user.getId(), user.getEmail(), user.getRole());
+            // JWT Access 토큰 생성
+            String accessToken = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+
+            // 리프레시 토큰 생성 (계정당 하나의 기기만 허용)
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId(), deviceInfo);
 
             return LoginResponse.builder()
-                    .token(token)
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken.getToken())
                     .user(new LoginResponse.UserInfo(
                             user.getId(),
                             user.getEmail(),

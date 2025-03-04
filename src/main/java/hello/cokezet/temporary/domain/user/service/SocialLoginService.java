@@ -1,9 +1,9 @@
 package hello.cokezet.temporary.domain.user.service;
 
-import hello.cokezet.temporary.domain.user.dto.LoginResponse;
+import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
 
 public interface SocialLoginService {
 
-    LoginResponse login(String idToken, String deviceType);
+    LoginResponse login(String idToken, String deviceType, String deviceInfo);
 
 }
