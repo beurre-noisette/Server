@@ -22,19 +22,16 @@ public class AuthRestController {
 
     @PostMapping("/google")
     public ResponseEntity<LoginResponse> googleLogin(@RequestBody SocialLoginRequest request) {
-        log.info("Google 로그인 요청: deviceType={}, deviceInfo={}", request.getDeviceType(), request.getDeviceInfo());
+        log.info("Google 로그인 요청: deviceType={}", request.getDeviceType());
 
-        LoginResponse response = googleLoginService.login(request.getIdToken(), request.getDeviceType(), request.getDeviceInfo());
+        LoginResponse response = googleLoginService.login(request.getIdToken(), request.getDeviceType());
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(
-            @RequestBody RefreshTokenRequest request,
-            @RequestHeader("User-Device-Info") String deviceInfo) {
-
-        RefreshTokenResponse response = refreshTokenService.refreshAccessToken(request.getRefreshToken(), deviceInfo);
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        RefreshTokenResponse response = refreshTokenService.refreshAccessToken(request.getRefreshToken());
 
         return ResponseEntity.ok(response);
     }

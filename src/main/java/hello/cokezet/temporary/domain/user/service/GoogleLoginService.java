@@ -32,7 +32,7 @@ public class GoogleLoginService implements SocialLoginService {
 
     @Override
     @Transactional
-    public LoginResponse login(String idToken, String deviceType, String deviceInfo) {
+    public LoginResponse login(String idToken, String deviceType) {
         if (!"android".equalsIgnoreCase(deviceType)) {
             throw new IllegalArgumentException("Google 로그인은 Android 기기만 지원합니다.");
         }
@@ -91,7 +91,7 @@ public class GoogleLoginService implements SocialLoginService {
             String accessToken = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
 
             // 리프레시 토큰 생성 (계정당 하나의 기기만 허용)
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId(), deviceInfo);
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
             return LoginResponse.builder()
                     .accessToken(accessToken)

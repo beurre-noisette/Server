@@ -4,6 +4,6 @@ import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
 
 public interface SocialLoginService {
 
-    LoginResponse login(String idToken, String deviceType, String deviceInfo);
+    LoginResponse login(String idToken, String deviceType);
 
 }
