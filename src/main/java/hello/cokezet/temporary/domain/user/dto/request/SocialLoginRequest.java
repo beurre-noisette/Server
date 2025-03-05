@@ -13,6 +13,4 @@ public class SocialLoginRequest {
 
     private String deviceType; // android, ios
     
-    private String deviceInfo; // 기기 식별 정보 (하나의 계정에 하나의 로그인만 가능하게 할 예정)
-
 }

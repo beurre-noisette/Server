@@ -27,9 +27,6 @@ public class RefreshToken extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
-    @Column(nullable = false)
-    private String deviceInfo;
-
     @Setter
     private boolean isUsed; // 토큰 사용 여부 (Rotation 확인용)
 

@@ -22,8 +22,8 @@ public class RefreshTokenService {
     private final UserRepository userRepository;
 
     @Transactional
-    public RefreshToken createRefreshToken(Long userId, String deviceInfo) {
-        // 기존 토큰이 있으면 삭제 (같은 기기가 아니더라도 모든 기기에서 로그아웃)
+    public RefreshToken createRefreshToken(Long userId) {
+        // 기존 토큰이 있으면 삭제 (한 계정당 하나의 로그인 유지)
         refreshTokenRepository.deleteByUserId(userId);
         
         // 새 리프레시 토큰 생성
@@ -34,7 +34,6 @@ public class RefreshTokenService {
                 .token(token)
                 .userId(userId)
                 .expiryDate(expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
-                .deviceInfo(deviceInfo)
                 .isUsed(false)
                 .build();
 
@@ -43,7 +42,7 @@ public class RefreshTokenService {
 
     // 토큰 검증 및 갱신 (Rotation 포함)
     @Transactional
-    public RefreshTokenResponse refreshAccessToken(String token, String deviceInfo) {
+    public RefreshTokenResponse refreshAccessToken(String token) {
         // 토큰 검증
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 Refresh Token 입니다."));
@@ -61,17 +60,12 @@ public class RefreshTokenService {
             throw new RuntimeException("만료된 리프레시 토큰입니다.");
         }
 
-        // 기기 정보 확인
-        if (!refreshToken.getDeviceInfo().equals(deviceInfo)) {
-            throw new RuntimeException("다른 기기에서의 접근입니다.");
-        }
-
         // 기존 토큰 사용 처리
         refreshToken.setUsed(true);
         refreshTokenRepository.save(refreshToken);
 
         // 새 리프레시 토큰 생성 (Rotation)
-        RefreshToken newRefreshToken = createRefreshToken(refreshToken.getUserId(), deviceInfo);
+        RefreshToken newRefreshToken = createRefreshToken(refreshToken.getUserId());
 
         // 새 액세스 토큰 생성을 위한 사용자 정보 조회
         User user = userRepository.findById(refreshToken.getUserId())
