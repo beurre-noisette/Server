@@ -1,5 +1,6 @@
 package hello.cokezet.temporary.domain.user.service;
 
+import hello.cokezet.temporary.global.error.exception.UnsupportedSocialTypeException;
 import hello.cokezet.temporary.global.model.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class SocialLoginFactory {
         SocialLoginService loginService = getLoginServiceMap().get(socialProvider);
 
         if (loginService == null) {
-            throw new IllegalArgumentException("지원하지 않는 소셜 로그인입니다. : " + socialProvider);
+            throw new UnsupportedSocialTypeException("지원하지 않는 소셜 로그인입니다. : " + socialProvider);
         }
 
         return loginService;

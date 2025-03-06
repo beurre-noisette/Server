@@ -3,6 +3,7 @@ package hello.cokezet.temporary.domain.user.controller;
 import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
 import hello.cokezet.temporary.domain.user.dto.request.ProfileUpdateRequest;
 import hello.cokezet.temporary.domain.user.service.UserProfileService;
+import hello.cokezet.temporary.global.common.ApiResponse;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public class UserRestController {
     private final UserProfileService userProfileService;
 
     @PostMapping("/profile")
-    public ResponseEntity<?> updateProfile(
+    public ResponseEntity<ApiResponse<Void>> updateProfile(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody ProfileUpdateRequest request
     ) {
@@ -30,24 +31,25 @@ public class UserRestController {
 
         userProfileService.updateUserProfile(principal, request);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<ProfileResponse> getProfile(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<ApiResponse<ProfileResponse>> getProfile(@AuthenticationPrincipal UserPrincipal principal) {
 
         log.info("프로필 조회 요청: userId = {}", principal.getId());
 
         ProfileResponse response = userProfileService.getUserProfile(principal.getId());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/profile/status")
-    public ResponseEntity<Map<String, Boolean>> checkProfileStatus(@AuthenticationPrincipal UserPrincipal principal) {
-
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> checkProfileStatus(@AuthenticationPrincipal UserPrincipal principal) {
         boolean isComplete = userProfileService.isProfileComplete(principal.getId());
 
-        return ResponseEntity.ok(Map.of("isComplete", isComplete));
+        Map<String, Boolean> statusMap = Map.of("isComplete", isComplete);
+
+        return ResponseEntity.ok(ApiResponse.success(statusMap));
     }
 }
