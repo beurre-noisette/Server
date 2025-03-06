@@ -31,12 +31,13 @@ public class GoogleLoginService implements SocialLoginService {
     private final RefreshTokenService refreshTokenService;
 
     @Override
-    @Transactional
-    public LoginResponse login(String idToken, String deviceType) {
-        if (!"android".equalsIgnoreCase(deviceType)) {
-            throw new IllegalArgumentException("Google 로그인은 Android 기기만 지원합니다.");
-        }
+    public SocialProvider getSocialProvider() {
+        return SocialProvider.GOOGLE;
+    }
 
+    @Override
+    @Transactional
+    public LoginResponse login(String idToken) {
         try {
             // Google ID 토큰 검증
             Jwt jwt = jwtDecoder.decode(idToken);
