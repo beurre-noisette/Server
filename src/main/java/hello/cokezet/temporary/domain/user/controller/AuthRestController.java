@@ -8,6 +8,7 @@ import hello.cokezet.temporary.domain.user.service.GoogleLoginService;
 import hello.cokezet.temporary.domain.user.service.RefreshTokenService;
 import hello.cokezet.temporary.domain.user.service.SocialLoginFactory;
 import hello.cokezet.temporary.domain.user.service.SocialLoginService;
+import hello.cokezet.temporary.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,20 +24,20 @@ public class AuthRestController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> socialLogin(@RequestBody SocialLoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> socialLogin(@RequestBody SocialLoginRequest request) {
         log.info("로그인 요청: provider={}", request.getProvider());
 
         SocialLoginService loginService = socialLoginFactory.getLoginService(request.getProvider());
 
         LoginResponse response = loginService.login(request.getIdToken());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
         RefreshTokenResponse response = refreshTokenService.refreshAccessToken(request.getRefreshToken());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
