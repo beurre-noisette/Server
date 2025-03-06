@@ -6,6 +6,8 @@ import hello.cokezet.temporary.domain.user.dto.response.RefreshTokenResponse;
 import hello.cokezet.temporary.domain.user.dto.request.SocialLoginRequest;
 import hello.cokezet.temporary.domain.user.service.GoogleLoginService;
 import hello.cokezet.temporary.domain.user.service.RefreshTokenService;
+import hello.cokezet.temporary.domain.user.service.SocialLoginFactory;
+import hello.cokezet.temporary.domain.user.service.SocialLoginService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +19,16 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthRestController {
 
-    private final GoogleLoginService googleLoginService;
+    private final SocialLoginFactory socialLoginFactory;
     private final RefreshTokenService refreshTokenService;
 
-    @PostMapping("/google")
-    public ResponseEntity<LoginResponse> googleLogin(@RequestBody SocialLoginRequest request) {
-        log.info("Google 로그인 요청: deviceType={}", request.getDeviceType());
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> socialLogin(@RequestBody SocialLoginRequest request) {
+        log.info("로그인 요청: provider={}", request.getProvider());
 
-        LoginResponse response = googleLoginService.login(request.getIdToken(), request.getDeviceType());
+        SocialLoginService loginService = socialLoginFactory.getLoginService(request.getProvider());
+
+        LoginResponse response = loginService.login(request.getIdToken());
 
         return ResponseEntity.ok(response);
     }
