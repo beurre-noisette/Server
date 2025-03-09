@@ -1,10 +1,12 @@
 package hello.cokezet.temporary.domain.user.controller;
 
-import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
 import hello.cokezet.temporary.domain.user.dto.request.ProfileUpdateRequest;
+import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
 import hello.cokezet.temporary.domain.user.service.UserProfileService;
-import hello.cokezet.temporary.global.common.ApiResponse;
+import hello.cokezet.temporary.global.common.ApiResult;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +19,17 @@ import java.util.Map;
 @Slf4j
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Tag(name = "유저", description = "유저 프로필 관리 API")
 public class UserRestController {
 
     private final UserProfileService userProfileService;
 
+    @Operation(
+            summary = "프로필 업데이트",
+            description = "사용자의 프로필 정보를 업데이트합니다. 최초 설정 시에는 선호커머스와 카드사를 반드시 설정해야 합니다."
+    )
     @PostMapping("/profile")
-    public ResponseEntity<ApiResponse<Void>> updateProfile(
+    public ResponseEntity<ApiResult<Void>> updateProfile(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody ProfileUpdateRequest request
     ) {
@@ -31,25 +38,29 @@ public class UserRestController {
 
         userProfileService.updateUserProfile(principal, request);
 
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResult.success(null));
     }
 
+    @Operation(
+            summary = "프로필 조회",
+            description = "사용자의 프로필 정보를 조회합니다."
+    )
     @GetMapping("/profile")
-    public ResponseEntity<ApiResponse<ProfileResponse>> getProfile(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<ApiResult<ProfileResponse>> getProfile(@AuthenticationPrincipal UserPrincipal principal) {
 
         log.info("프로필 조회 요청: userId = {}", principal.getId());
 
         ProfileResponse response = userProfileService.getUserProfile(principal.getId());
 
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResult.success(response));
     }
 
     @GetMapping("/profile/status")
-    public ResponseEntity<ApiResponse<Map<String, Boolean>>> checkProfileStatus(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<ApiResult<Map<String, Boolean>>> checkProfileStatus(@AuthenticationPrincipal UserPrincipal principal) {
         boolean isComplete = userProfileService.isProfileComplete(principal.getId());
 
         Map<String, Boolean> statusMap = Map.of("isComplete", isComplete);
 
-        return ResponseEntity.ok(ApiResponse.success(statusMap));
+        return ResponseEntity.ok(ApiResult.success(statusMap));
     }
 }

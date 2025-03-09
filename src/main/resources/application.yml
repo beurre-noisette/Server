@@ -11,3 +11,19 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  server-url: ${SERVER_URL:http://localhost:8080}
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true # 운영환경에서는 비활성화 필요
+    tags-sorter: alpha
+    operations-sorter: alpha
+  packages-to-scan: hello.cokezet.temporary.domain
+  paths-to-match: /api/**
+
+logging:
+  level:
+    hello.cokezet: DEBUG
