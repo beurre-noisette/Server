@@ -45,3 +45,8 @@ application-oauth.yml
 .env
 *.log
 *.gz
+
+### Security Keys ###
+*.p8
+*.pem
+*.key
