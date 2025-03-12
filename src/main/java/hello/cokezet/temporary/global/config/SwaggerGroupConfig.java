@@ -32,4 +32,17 @@ public class SwaggerGroupConfig {
                 })
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi testApi() {
+        return GroupedOpenApi.builder()
+                .group("3. 소셜로그인 테스트용 API")
+                .pathsToMatch("/api/test/**")
+                .packagesToScan("hello.cokezet.temporary.domain.user.controller")
+                .addOpenApiMethodFilter(method -> {
+                    // TestRestController의 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("TestRestController");
+                })
+                .build();
+    }
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Profile("!prod") // 운영 환경에서는 접근 불가
 @Tag(name = "테스트", description = "소셜 로그인 테스트를 위한 API")
-public class TestController {
+public class TestRestController {
 
     private final UserManagementService userManagementService;
 
