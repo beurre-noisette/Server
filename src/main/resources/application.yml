@@ -2,7 +2,7 @@ spring:
   application:
     name: cokeZet
   profiles:
-    include: oauth, database, jwt
+    include: oauth, database, jwt, prod
 
   jpa:
     hibernate:
