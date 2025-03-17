@@ -3,6 +3,7 @@ package hello.cokezet.temporary.domain.productAndCard.controller;
 import hello.cokezet.temporary.domain.productAndCard.entity.ProductAndCard;
 import hello.cokezet.temporary.domain.productAndCard.service.ProductAndCardService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,30 +33,39 @@ public class ProductAndCardRestController {
             price는 ml 당 가격입니다.
     """)
 	@GetMapping
-	public ResponseEntity<GetProductAndCard> getProductAndCardList() {
+	public ResponseEntity<List<GetProductAndCard>> getProductAndCardList() {
 		List<ProductAndCard> productAndCardList = productAndCardService.getProductAndCardList();
 		log.info("productAndCardList: {}", productAndCardList);
 
 		return ResponseEntity.ok(
-			new GetProductAndCard(
-				"코카콜라",
-				"11번가",
-				1000,
-				"500ml",
-				"코카콜라",
-				10,
-				List.of("신한카드", "삼성카드")
-			)
+				List.of(
+						new GetProductAndCard(
+								"코카콜라",
+								"11번가",
+								1000,
+								"500ml",
+								"코카콜라",
+								10,
+								List.of("신한카드", "삼성카드")
+						)
+				)
 		);
 	}
 
 	public record GetProductAndCard(
+		@Schema(defaultValue = "코카콜라", description = "상품명")
 		String productName,
+		@Schema(defaultValue = "11번가", description = "온라인 스토어")
 		String storeName,
+		@Schema(defaultValue = "1000", description = "ml 당 가격")
 		int price,
+		@Schema(defaultValue = "500ml", description = "용량")
 		String size,
+		@Schema(defaultValue = "코카콜라", description = "브랜드")
 		String brand,
+		@Schema(defaultValue = "10", description = "할인율")
 		int discountRate,
+		@Schema(description = "카드s")
 		List<String> cards
 	) { }
 }
