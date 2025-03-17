@@ -2,7 +2,7 @@ spring:
   application:
     name: cokeZet
   profiles:
-    include: oauth, database, jwt, prod
+    include: oauth, database, jwt
 
   jpa:
     hibernate:
@@ -12,13 +12,14 @@ spring:
       hibernate:
         format_sql: true
 
+# 기본 Swagger 설정, (개발환경용)
 springdoc:
   api-docs:
     path: /api-docs
   server-url: ${SERVER_URL:http://localhost:8080}
   swagger-ui:
     path: /swagger-ui.html
-    enabled: true # 운영환경에서는 비활성화 필요
+    enabled: true
     tags-sorter: alpha
     operations-sorter: alpha
   packages-to-scan: hello.cokezet.temporary.domain

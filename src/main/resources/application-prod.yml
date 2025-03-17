@@ -1,18 +1,6 @@
+# 프로덕션 환경
 springdoc:
   swagger-ui:
-    groups-order: desc
-    tags-sorter: alpha
-    operations-sorter: method
-    disable-swagger-default-url: true
-    display-request-duration: true
-    defaultModelsExpandDepth: 2
-    defaultModelExpandDepth: 2
+    enabled: false # 프로덕션 환경에서 Swagger UI 비활성화
   api-docs:
-    path: /api-docs
-  show-actuator: true
-  default-consumes-media-type: application/json
-  default-produces-media-type: application/json
-  writer-with-default-pretty-printer: true
-  model-and-view-allowed: true
-  paths-to-match:
-    - /api/**
+    enabled: false # 프로덕션 환경에서 API 문서 비활성화
