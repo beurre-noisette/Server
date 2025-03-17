@@ -45,4 +45,17 @@ public class SwaggerGroupConfig {
                 })
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi productAndCardApi() {
+        return GroupedOpenApi.builder()
+                .group("4. 온라인 스토어 API")
+                .pathsToMatch("/api/v1/productAndCard/**")
+                .packagesToScan("hello.cokezet.temporary.domain.productAndCard.controller")
+                .addOpenApiMethodFilter(method -> {
+                    // ProductAndCardController의 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("ProductAndCardController");
+                })
+                .build();
+    }
 }
