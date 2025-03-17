@@ -8,11 +8,13 @@ import hello.cokezet.temporary.domain.user.service.RefreshTokenService;
 import hello.cokezet.temporary.domain.user.service.SocialLoginFactory;
 import hello.cokezet.temporary.domain.user.service.SocialLoginService;
 import hello.cokezet.temporary.global.common.ApiResult;
+import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,5 +54,19 @@ public class AuthRestController {
         RefreshTokenResponse response = refreshTokenService.refreshAccessToken(request.getRefreshToken());
 
         return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    // 수정가능성 있음
+    @Operation(
+            summary = "로그아웃",
+            description = "현재 로그인한 사용자의 토큰을 무효화합니다."
+    )
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResult<Void>> logout(@AuthenticationPrincipal UserPrincipal principal) {
+        log.info("로그아웃 요청: userId={}", principal.getId());
+
+        refreshTokenService.logout(principal.getId());
+
+        return ResponseEntity.ok(ApiResult.success(null));
     }
 }

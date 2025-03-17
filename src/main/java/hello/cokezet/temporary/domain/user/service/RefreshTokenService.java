@@ -12,11 +12,13 @@ import hello.cokezet.temporary.global.error.exception.UserNotFoundException;
 import hello.cokezet.temporary.global.security.jwt.JwtProvider;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.util.Date;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
@@ -81,5 +83,15 @@ public class RefreshTokenService {
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken.getToken())
                 .build();
+    }
+
+    /**
+     * 임시 메서드
+     * 사용자 로그아웃 - 리프레시 토큰 삭제
+     */
+    @Transactional
+    public void logout(Long userId) {
+        refreshTokenRepository.deleteByUserId(userId);
+        log.info("userId={}의 리프레시 토큰 삭제 완료", userId);
     }
 }
