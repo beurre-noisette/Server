@@ -7,7 +7,6 @@ import hello.cokezet.temporary.global.common.ApiResult;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,11 +17,14 @@ import java.util.Map;
 @RestController
 @Slf4j
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
 @Tag(name = "유저", description = "유저 프로필 관리 API")
 public class UserRestController {
 
     private final UserProfileService userProfileService;
+
+    public UserRestController(UserProfileService userProfileService) {
+        this.userProfileService = userProfileService;
+    }
 
     @Operation(
             summary = "프로필 업데이트",

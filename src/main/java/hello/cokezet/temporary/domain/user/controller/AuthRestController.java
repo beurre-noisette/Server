@@ -11,7 +11,6 @@ import hello.cokezet.temporary.global.common.ApiResult;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,12 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 @Tag(name = "인증", description = "소셜 로그인 및 토큰 관리 API")
 public class AuthRestController {
 
     private final SocialLoginFactory socialLoginFactory;
     private final RefreshTokenService refreshTokenService;
+
+    public AuthRestController(SocialLoginFactory socialLoginFactory, RefreshTokenService refreshTokenService) {
+        this.socialLoginFactory = socialLoginFactory;
+        this.refreshTokenService = refreshTokenService;
+    }
 
     @Operation(
             summary = "소셜 로그인",

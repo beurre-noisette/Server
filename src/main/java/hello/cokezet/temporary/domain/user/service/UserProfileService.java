@@ -4,8 +4,8 @@ import hello.cokezet.temporary.domain.benefit.model.CardCompany;
 import hello.cokezet.temporary.domain.benefit.model.Commerce;
 import hello.cokezet.temporary.domain.benefit.repository.CardCompanyRepository;
 import hello.cokezet.temporary.domain.benefit.repository.CommerceRepository;
-import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
 import hello.cokezet.temporary.domain.user.dto.request.ProfileUpdateRequest;
+import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
 import hello.cokezet.temporary.domain.user.model.User;
 import hello.cokezet.temporary.domain.user.repository.UserRepository;
 import hello.cokezet.temporary.global.error.ErrorCode;
@@ -13,7 +13,6 @@ import hello.cokezet.temporary.global.error.exception.BusinessException;
 import hello.cokezet.temporary.global.error.exception.UserNotFoundException;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +22,17 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class UserProfileService {
 
     private final UserRepository userRepository;
     private final CommerceRepository commerceRepository;
     private final CardCompanyRepository cardCompanyRepository;
+
+    public UserProfileService(UserRepository userRepository, CommerceRepository commerceRepository, CardCompanyRepository cardCompanyRepository) {
+        this.userRepository = userRepository;
+        this.commerceRepository = commerceRepository;
+        this.cardCompanyRepository = cardCompanyRepository;
+    }
 
     @Transactional
     public void updateUserProfile(UserPrincipal principal, ProfileUpdateRequest request) {

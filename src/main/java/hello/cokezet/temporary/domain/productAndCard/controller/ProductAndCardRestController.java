@@ -16,12 +16,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/productAndCard")
 @Tag(name = "온라인 스토어 상품 API", description = "온라인 스토어 API를 제공합니다.")
-public class ProductAndCardController {
+public class ProductAndCardRestController {
 
-	private final Logger log = LoggerFactory.getLogger(ProductAndCardController.class);
+	private final Logger log = LoggerFactory.getLogger(ProductAndCardRestController.class);
 	private final ProductAndCardService productAndCardService;
 
-	public ProductAndCardController(ProductAndCardService productAndCardService) {
+	public ProductAndCardRestController(ProductAndCardService productAndCardService) {
 		this.productAndCardService = productAndCardService;
 	}
 
