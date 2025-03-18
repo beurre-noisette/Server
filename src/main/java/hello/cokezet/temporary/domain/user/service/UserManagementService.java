@@ -8,7 +8,6 @@ import hello.cokezet.temporary.domain.user.repository.UserRepository;
 import hello.cokezet.temporary.global.error.exception.UserNotFoundException;
 import hello.cokezet.temporary.global.model.SocialProvider;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -19,13 +18,18 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 @Profile("!prod") // 운영 환경에서는 사용 불가
 public class UserManagementService {
 
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+
+    public UserManagementService(UserRepository userRepository, SocialAccountRepository socialAccountRepository, RefreshTokenRepository refreshTokenRepository) {
+        this.userRepository = userRepository;
+        this.socialAccountRepository = socialAccountRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+    }
 
     /**
      * 특정 소셜 제공자로 로그인한 모든 사용자의 토큰을 삭제합니다.

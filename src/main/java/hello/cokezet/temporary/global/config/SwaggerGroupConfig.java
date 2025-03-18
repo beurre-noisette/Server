@@ -53,8 +53,8 @@ public class SwaggerGroupConfig {
                 .pathsToMatch("/api/v1/productAndCard/**")
                 .packagesToScan("hello.cokezet.temporary.domain.productAndCard.controller")
                 .addOpenApiMethodFilter(method -> {
-                    // ProductAndCardController의 메서드만 포함
-                    return method.getDeclaringClass().getSimpleName().equals("ProductAndCardController");
+                    // ProductAndCardRestController의 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("ProductAndCardRestController");
                 })
                 .build();
     }

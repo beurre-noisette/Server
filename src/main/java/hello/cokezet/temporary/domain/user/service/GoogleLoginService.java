@@ -10,7 +10,6 @@ import hello.cokezet.temporary.global.model.Role;
 import hello.cokezet.temporary.global.model.SocialProvider;
 import hello.cokezet.temporary.global.security.jwt.JwtProvider;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -21,7 +20,6 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class GoogleLoginService implements SocialLoginService {
 
     private final UserRepository userRepository;
@@ -29,6 +27,14 @@ public class GoogleLoginService implements SocialLoginService {
     private final JwtProvider jwtProvider;
     private final JwtDecoder jwtDecoder;
     private final RefreshTokenService refreshTokenService;
+
+    public GoogleLoginService(UserRepository userRepository, SocialAccountRepository socialAccountRepository, JwtProvider jwtProvider, JwtDecoder jwtDecoder, RefreshTokenService refreshTokenService) {
+        this.userRepository = userRepository;
+        this.socialAccountRepository = socialAccountRepository;
+        this.jwtProvider = jwtProvider;
+        this.jwtDecoder = jwtDecoder;
+        this.refreshTokenService = refreshTokenService;
+    }
 
     @Override
     public SocialProvider getSocialProvider() {

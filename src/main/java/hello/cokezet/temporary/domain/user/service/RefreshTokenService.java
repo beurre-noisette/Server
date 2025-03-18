@@ -11,7 +11,6 @@ import hello.cokezet.temporary.global.error.exception.TokenReuseDetectedExceptio
 import hello.cokezet.temporary.global.error.exception.UserNotFoundException;
 import hello.cokezet.temporary.global.security.jwt.JwtProvider;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +19,17 @@ import java.util.Date;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
+
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, JwtProvider jwtProvider, UserRepository userRepository) {
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.jwtProvider = jwtProvider;
+        this.userRepository = userRepository;
+    }
 
     @Transactional
     public RefreshToken createRefreshToken(Long userId) {

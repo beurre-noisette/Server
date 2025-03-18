@@ -17,7 +17,6 @@ import hello.cokezet.temporary.global.model.Role;
 import hello.cokezet.temporary.global.model.SocialProvider;
 import hello.cokezet.temporary.global.security.jwt.JwtProvider;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class AppleLoginService implements SocialLoginService {
 
     private final UserRepository userRepository;
@@ -35,6 +33,14 @@ public class AppleLoginService implements SocialLoginService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final AppleJwtKeyService appleJwtKeyService;
+
+    public AppleLoginService(UserRepository userRepository, SocialAccountRepository socialAccountRepository, JwtProvider jwtProvider, RefreshTokenService refreshTokenService, AppleJwtKeyService appleJwtKeyService) {
+        this.userRepository = userRepository;
+        this.socialAccountRepository = socialAccountRepository;
+        this.jwtProvider = jwtProvider;
+        this.refreshTokenService = refreshTokenService;
+        this.appleJwtKeyService = appleJwtKeyService;
+    }
 
     @Value("${apple.client-id}")
     private String appleClientId;
