@@ -33,30 +33,30 @@ public class StoreScheduler {
 		this.productRepository = productRepository;
 	}
 
-//	@Scheduled(cron = "0 0 12,23 * * *")
-@Scheduled(cron = "0 * * * * *")
-public void storeScheduler() {
-	Long systemTime = System.currentTimeMillis();
+	@Scheduled(cron = "0 0 12,23 * * *")
+	//@Scheduled(cron = "0 * * * * *")
+	public void storeScheduler() {
+		Long systemTime = System.currentTimeMillis();
 
-	String uri = String.format(
-			"https://apis.11st.co.kr/search/api/tab/total-search/more/common?kwd=제로콜라&tabId=TOTAL_SEARCH&_=%d&commonPrdTotCnt=5453&pageNo=3"
-					+ "&prdMoreStartShowCnt=1000",
-			systemTime
-	);
+		String uri = String.format(
+				"https://apis.11st.co.kr/search/api/tab/total-search/more/common?kwd=제로콜라&tabId=TOTAL_SEARCH&_=%d&commonPrdTotCnt=5453&pageNo=3"
+						+ "&prdMoreStartShowCnt=1000",
+				systemTime
+		);
 
-	log.info("uri: {}", uri);
+		log.info("uri: {}", uri);
 
-	JsonNode storeResponse = restClient.get()
-			.uri(uri)
-			.retrieve()
-			.body(JsonNode.class);
+		JsonNode storeResponse = restClient.get()
+				.uri(uri)
+				.retrieve()
+				.body(JsonNode.class);
 
-	JsonNode items = Objects.requireNonNull(storeResponse).get("items");
+		JsonNode items = Objects.requireNonNull(storeResponse).get("items");
 
-	// ✅ "items" 배열에서 개별 아이템 추출 후 필터링
-	List<JsonNode> filteredItems = objectMapper.convertValue(items, new TypeReference<>() {});
+		// ✅ "items" 배열에서 개별 아이템 추출 후 필터링
+		List<JsonNode> filteredItems = objectMapper.convertValue(items, new TypeReference<>() {});
 
-	filteredItems.stream()
+		filteredItems.stream()
 			.filter(this::itemsValidator)
 			.filter(item -> item.has("unitPrcInfo") && item.get("unitPrcInfo").has("unitPrc"))
 			.filter(item -> !item.get("title").asText().contains("x"))
