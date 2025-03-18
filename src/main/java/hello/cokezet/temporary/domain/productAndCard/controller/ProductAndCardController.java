@@ -65,7 +65,7 @@ public class ProductAndCardController {
 		String brand,
 		@Schema(defaultValue = "10", description = "할인율")
 		int discountRate,
-		@Schema(description = "카드s")
+		@Schema(description = "카드 할인 목록")
 		List<String> cards
 	) { }
 }
