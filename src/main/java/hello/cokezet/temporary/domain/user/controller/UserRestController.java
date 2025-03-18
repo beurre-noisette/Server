@@ -41,6 +41,7 @@ public class UserRestController {
         userProfileService.updateUserProfile(principal, request);
 
         return ResponseEntity.ok(ApiResult.success(null));
+
     }
 
     @Operation(

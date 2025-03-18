@@ -4,20 +4,20 @@ import hello.cokezet.temporary.domain.user.dto.request.RefreshTokenRequest;
 import hello.cokezet.temporary.domain.user.dto.request.SocialLoginRequest;
 import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
 import hello.cokezet.temporary.domain.user.dto.response.RefreshTokenResponse;
+import hello.cokezet.temporary.domain.user.model.User;
+import hello.cokezet.temporary.domain.user.repository.UserRepository;
 import hello.cokezet.temporary.domain.user.service.RefreshTokenService;
 import hello.cokezet.temporary.domain.user.service.SocialLoginFactory;
 import hello.cokezet.temporary.domain.user.service.SocialLoginService;
 import hello.cokezet.temporary.global.common.ApiResult;
+import hello.cokezet.temporary.global.error.exception.UserNotFoundException;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
@@ -27,10 +27,12 @@ public class AuthRestController {
 
     private final SocialLoginFactory socialLoginFactory;
     private final RefreshTokenService refreshTokenService;
+    private final UserRepository userRepository;
 
-    public AuthRestController(SocialLoginFactory socialLoginFactory, RefreshTokenService refreshTokenService) {
+    public AuthRestController(SocialLoginFactory socialLoginFactory, RefreshTokenService refreshTokenService, UserRepository userRepository) {
         this.socialLoginFactory = socialLoginFactory;
         this.refreshTokenService = refreshTokenService;
+        this.userRepository = userRepository;
     }
 
     @Operation(
@@ -46,6 +48,26 @@ public class AuthRestController {
         LoginResponse response = loginService.login(request.getIdToken());
 
         return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    @Operation(
+            summary = "토큰 검증",
+            description = "accessToken의 유효성을 검증하고 사용자 정보를 반환합니다. 자동 로그인에 사용됩니다."
+    )
+    @GetMapping("/login")
+    public ResponseEntity<ApiResult<LoginResponse.UserInfo>> validateToken(@AuthenticationPrincipal UserPrincipal principal) {
+        log.info("토큰 검증 요청: userId={}", principal.getId());
+
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo(
+                user.getId(),
+                user.getEmail(),
+                user.getNickname()
+        );
+
+        return ResponseEntity.ok(ApiResult.success(userInfo));
     }
 
     @Operation(
