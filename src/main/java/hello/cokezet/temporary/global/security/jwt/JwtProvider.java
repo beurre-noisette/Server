@@ -70,12 +70,9 @@ public class JwtProvider {
     }
 
     public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        // 예외를 catch하지 않고 호출자에게 전파하여, 필터에서 구체적인 예외 타입 확인
+        Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+        return true;
     }
 
     public Date getExpirationDateFromToken(String token) {
