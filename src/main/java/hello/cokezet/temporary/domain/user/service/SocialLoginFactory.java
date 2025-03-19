@@ -2,7 +2,6 @@ package hello.cokezet.temporary.domain.user.service;
 
 import hello.cokezet.temporary.global.error.exception.UnsupportedSocialTypeException;
 import hello.cokezet.temporary.global.model.SocialProvider;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -11,10 +10,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class SocialLoginFactory {
 
     private final Set<SocialLoginService> loginServices;
+
+    public SocialLoginFactory(Set<SocialLoginService> loginServices) {
+        this.loginServices = loginServices;
+    }
 
     private Map<SocialProvider, SocialLoginService> getLoginServiceMap() {
         return loginServices.stream()

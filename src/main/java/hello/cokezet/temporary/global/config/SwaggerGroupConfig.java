@@ -32,4 +32,30 @@ public class SwaggerGroupConfig {
                 })
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi testApi() {
+        return GroupedOpenApi.builder()
+                .group("3. 소셜로그인 테스트용 API")
+                .pathsToMatch("/api/test/**")
+                .packagesToScan("hello.cokezet.temporary.domain.user.controller")
+                .addOpenApiMethodFilter(method -> {
+                    // TestRestController의 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("TestRestController");
+                })
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi productAndCardApi() {
+        return GroupedOpenApi.builder()
+                .group("4. 온라인 스토어 API")
+                .pathsToMatch("/api/v1/product_and_card/**")
+                .packagesToScan("hello.cokezet.temporary.domain.product_and_card.controller")
+                .addOpenApiMethodFilter(method -> {
+                    // ProductAndCardRestController의 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("ProductAndCardRestController");
+                })
+                .build();
+    }
 }

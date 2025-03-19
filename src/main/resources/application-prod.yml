@@ -1,3 +1,6 @@
+# 프로덕션 환경
 springdoc:
   swagger-ui:
-    enabled: false  # 운영 환경에서는 비활성화
+    enabled: false # 프로덕션 환경에서 Swagger UI 비활성화
+  api-docs:
+    enabled: false # 프로덕션 환경에서 API 문서 비활성화

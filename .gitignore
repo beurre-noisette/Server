@@ -36,11 +36,6 @@ out/
 ### VS Code ###
 .vscode/
 
-### setting files ###
-application-jwt.yml
-application-database.yml
-application-oauth.yml
-
 ### ETC ###
 .env
 *.log

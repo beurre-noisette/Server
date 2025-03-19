@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant User
+    participant APP
+    participant Server
+
+    User->>APP: Post Login 버튼 클릭
+
+    APP ->> Server: Google Id Token 요청
+    Server ->> APP: access_token 발급, refresh_token 발급
+
+    APP ->> Server: 상품 조회 API
+    Server ->> APP: 상품 List 응답
+
+    Note right of APP: 앱 종료
+
+    Note right of APP: 앱 재실행
+
+    APP ->> Server: Get Token 검증 요청
+    Server ->> APP: access_token 발급, refresh_token 발급
+
+    
