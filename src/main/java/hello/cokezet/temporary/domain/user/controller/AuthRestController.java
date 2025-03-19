@@ -4,13 +4,11 @@ import hello.cokezet.temporary.domain.user.dto.request.RefreshTokenRequest;
 import hello.cokezet.temporary.domain.user.dto.request.SocialLoginRequest;
 import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
 import hello.cokezet.temporary.domain.user.dto.response.RefreshTokenResponse;
-import hello.cokezet.temporary.domain.user.model.User;
-import hello.cokezet.temporary.domain.user.repository.UserRepository;
+import hello.cokezet.temporary.domain.user.service.AuthService;
 import hello.cokezet.temporary.domain.user.service.RefreshTokenService;
 import hello.cokezet.temporary.domain.user.service.SocialLoginFactory;
 import hello.cokezet.temporary.domain.user.service.SocialLoginService;
 import hello.cokezet.temporary.global.common.ApiResult;
-import hello.cokezet.temporary.global.error.exception.UserNotFoundException;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,16 +25,16 @@ public class AuthRestController {
 
     private final SocialLoginFactory socialLoginFactory;
     private final RefreshTokenService refreshTokenService;
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
-    public AuthRestController(SocialLoginFactory socialLoginFactory, RefreshTokenService refreshTokenService, UserRepository userRepository) {
+    public AuthRestController(SocialLoginFactory socialLoginFactory, RefreshTokenService refreshTokenService, AuthService authService) {
         this.socialLoginFactory = socialLoginFactory;
         this.refreshTokenService = refreshTokenService;
-        this.userRepository = userRepository;
+        this.authService = authService;
     }
 
     @Operation(
-            summary = "소셜 로그인",
+            summary = "소셜 로그인(최초 로그인 혹은 리프레쉬 토큰도 만료된 경우)",
             description = "Google 또는 Apple의 ID 토큰을 사용하여 인증하고 서버측의 JWT 토큰(Access, Refresh)을 발급받습니다."
     )
     @PostMapping("/login")
@@ -51,23 +49,16 @@ public class AuthRestController {
     }
 
     @Operation(
-            summary = "토큰 검증",
-            description = "accessToken의 유효성을 검증하고 사용자 정보를 반환합니다. 자동 로그인에 사용됩니다."
+            summary = "토큰 검증 및 재로그인",
+            description = "accessToken의 유효성을 검증하고 새로운 토큰(Access, Refresh)과 사용자 정보를 반환합니다."
     )
     @GetMapping("/login")
-    public ResponseEntity<ApiResult<LoginResponse.UserInfo>> validateToken(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<ApiResult<LoginResponse>> validateToken(@AuthenticationPrincipal UserPrincipal principal) {
         log.info("토큰 검증 요청: userId={}", principal.getId());
 
-        User user = userRepository.findById(principal.getId())
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        LoginResponse loginResponse = authService.validateAndRefreshToken(principal.getId());
 
-        LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo(
-                user.getId(),
-                user.getEmail(),
-                user.getNickname()
-        );
-
-        return ResponseEntity.ok(ApiResult.success(userInfo));
+        return ResponseEntity.ok(ApiResult.success(loginResponse));
     }
 
     @Operation(
