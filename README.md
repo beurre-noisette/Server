@@ -63,6 +63,50 @@ CokeZet은 사용자가 선호하는 커머스에서 제로콜라 최저가 정�
 + 새로운 소셜 로그인 추가 시 기존 코드 변경 없이 확장 가능한 설계를 해보고자 고민하였습니다.
 + `domain/user/service/SocialLoginService.java`, `domain/user/service/SocialLoginFactory.java`에 관련 코드가 있습니다.
 
+#### 일관된 인증 API 응답 구조 설계
+
++ 모든 인증 API(소셜 로그인, 토큰 검증)가 일관된 LoginResponse 형식으로 응답하도록 구현했습니다.
++ 클라이언트 개발자가 단일한 방식으로 인증 응답을 처리할 수 있어 개발 복잡성이 감소합니다.
++ 모든 로그인 API에서 accessToken, refreshToken, 사용자 정보를 동일한 구조로 제공합니다.
++ `domain/user/service/AuthService.java`에 토큰 검증 및 갱신 로직을 중앙화하여 코드 중복을 방지했습니다.
+
+```java
+// AuthService.java의 일부분
+public LoginResponse validateAndRefreshToken(Long userId) {
+  User user = userRepository.findById(userId)
+          .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+  // JWT 액세스 토큰 생성
+  String accessToken = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+
+  // 리프레시 토큰 생성 (기존 토큰 삭제 후 새로 생성)
+  RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+  return LoginResponse.builder()
+          .accessToken(accessToken)
+          .refreshToken(refreshToken.getToken())
+          .user(new LoginResponse.UserInfo(
+                  user.getId(),
+                  user.getEmail(),
+                  user.getNickname()
+          ))
+          .newUser(false)
+          .build();
+}
+```
+
+#### 모바일 자동 로그인 최적화
+
++ 모바일 앱의 사용자 경험을 고려한 자동 로그인 흐름을 설계했습니다.
+  + 앱 재시작 시 `GET /api/auth/login`으로 저장된 토큰 검증 및 갱신
+  + 토큰 만료 시 리프레시 토큰으로 자동 갱신 처리
+  + 모든 토큰 만료 시에만 사용자에게 재로그인 요청
+
++ 매 로그인 시도마다 새로운 토큰을 발급하는 전략으로 보안을 강화하고자 했습니다.
+  + 발급된 토큰의 사용 기간을 최소화하여 탈취 위험 감소
+  + 토큰 만료 관리의 복잡성 대신 보안성 우선 접근
+  + API 호출 패턴 분석을 통한 최적의 토큰 갱신 전략 수립
+
 #### Refresh Token Rotation 정책을 취했습니다.
 
 + 토큰이 탈취되어도 한 번 사용 후에는 무효화되어 보안 위험을 최소화할 수 있다고 판단했습니다.
@@ -232,6 +276,36 @@ public ResponseEntity<ApiResult<LoginResponse>> socialLogin(@RequestBody SocialL
 + 각 소셜 로그인의 API 변경 시 해당 구현체만 수정하면 되어 유지보수성이 향상되었습니다.
 + 컨트롤러와 서비스 계층의 결합도를 낮추어 테스트 용이성을 높였습니다.
 + Spring의 기능을 최대한 활용하여 구현 복잡도를 낮추고 코드 가독성을 높였습니다.
+
+### 4. 모바일 앱을 위환 인증 흐름 최적화
+
+문제 상황:
+
++ 모바일 앱에서는 토큰 기반 인증 시 다양한 상태(토큰 유효, 만료, 재발급 등)를 처리해야 했습니다.
++ 앱 개발자와 백엔드 개발자 간 API 응답 형식에 대한 이해 차이로 통합 이슈가 발생했습니다.
++ 보안과 사용자 경험 사이의 균형을 맞추는 토큰 관리 전략이 필요했습니다.
+
+해결 방법:
+
++ 인증 API 응답 통일: 모든 인증 관련 API가 일관된 LoginResponse 형식을 반환하도록 설계했습니다.
+
+```java
+// AuthRestController.java의 일부분
+@GetMapping("/login")
+public ResponseEntity<ApiResult<LoginResponse>> validateToken(@AuthenticationPrincipal UserPrincipal principal) {
+    LoginResponse loginResponse = authService.validateAndRefreshToken(principal.getId());
+    return ResponseEntity.ok(ApiResult.success(loginResponse));
+}
+```
+
++ AuthService 도입: 인증 관련 로직을 중앙화하여 코드 중복을 제거하고 일관된 인증 처리를 구현했습니다.
++ API 문서화(Markdown(Mermaid)): 각 인증 API의 목적과 사용 시나리오를 명확히 설명하여 앱 개발자의 이해를 돕는 문서를 작성했습니다.
+
+성과:
+
++ 앱과 백엔드 간 원활한 통합으로 개발 속도가 향상되었습니다.
++ 사용자에게 투명한 인증 경험을 제공하면서도 보안을 유지하는 균형을 유지할 수 있다고 생각합니다.
++ 다양한 인증 상태에 대한 명확한 처리 흐름을 구축하여 앱의 안정성이 향상될 것으로 기대하고 있습니다.
 
 이러한 기술적 도전들을 해결하면서, 보안성과 확장성을 모두 고려한 견고한 백엔드 시스템을 구축하고자 노력하고 있습니다. 특히 모바일 앱 특성에 맞는 인증 시스템 구현과 사용자 경험을 해치지 않는 보안 강화 방안을 모색하는 과정이 가장 큰 학습 포인트였습니다.
 
