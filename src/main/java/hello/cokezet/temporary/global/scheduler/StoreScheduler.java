@@ -3,8 +3,10 @@ package hello.cokezet.temporary.global.scheduler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hello.cokezet.temporary.domain.Product.entity.Product;
-import hello.cokezet.temporary.domain.Product.repository.ProductRepository;
+import hello.cokezet.temporary.domain.product.entity.Product;
+import hello.cokezet.temporary.domain.product.repository.ProductRepository;
+import hello.cokezet.temporary.domain.store.entity.Store;
+import hello.cokezet.temporary.domain.store.repository.StoreRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,15 +24,18 @@ public class StoreScheduler {
 	private final RestClient restClient;
 	private final ObjectMapper objectMapper;
 	private final ProductRepository productRepository;
+	private final StoreRepository storeRepository;
 
 	public StoreScheduler(
 			RestClient restClient,
 			ObjectMapper objectMapper,
-			ProductRepository productRepository
+			ProductRepository productRepository,
+			StoreRepository storeRepository
 	) {
 		this.objectMapper = objectMapper;
 		this.restClient = restClient;
 		this.productRepository = productRepository;
+		this.storeRepository = storeRepository;
 	}
 
 	@Scheduled(cron = "0 0 12,23 * * *")
@@ -79,13 +84,27 @@ public class StoreScheduler {
 					return;
 				}
 
+				String count = item.get("title").asText();
+				if (count == null) {
+					return;
+				}
+
+				String taste = item.get("title").asText();
+				if (taste == null) {
+					return;
+				}
+
+				Store store = storeRepository.findByName("11번가");
+				
 				productRepository.save(
 						new Product(
 								item.get("id").asLong(),
-								"11번가",
+								store,
 								item.get("unitPrcInfo").get("unitPrc").asInt(),
 								size,
-								brand
+								brand,
+								count,
+								taste
 						));
 			});
 	}

@@ -1,6 +1,6 @@
-package hello.cokezet.temporary.domain.Product.repository;
+package hello.cokezet.temporary.domain.product.repository;
 
-import hello.cokezet.temporary.domain.Product.entity.Product;
+import hello.cokezet.temporary.domain.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {

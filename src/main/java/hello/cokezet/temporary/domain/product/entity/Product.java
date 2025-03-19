@@ -1,5 +1,6 @@
-package hello.cokezet.temporary.domain.Product.entity;
+package hello.cokezet.temporary.domain.product.entity;
 
+import hello.cokezet.temporary.domain.store.entity.Store;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -12,22 +13,35 @@ public class Product {
 	private Long id = null;
 	@Column(nullable = false, unique = true)
 	private Long storeProductId;
-	@Column(nullable = false)
-	private String storeName;
+	@OneToOne
+	private Store store;
 	@Column(nullable = false)
 	private int price;
 	@Column(nullable = false)
 	private String size;
 	@Column(nullable = false)
 	private String brand;
+	@Column(nullable = false)
+	private String count;
+	@Column(nullable = false)
+	private String taste;
 
 	public Product() { }
 
-	public Product(Long storeProductId, String storeName, int price, String size, String brand) {
+	public Product(
+			Long storeProductId,
+			Store store, int price,
+			String size,
+			String brand,
+			String count,
+			String taste
+	) {
 		this.storeProductId = storeProductId;
-		this.storeName = storeName;
+		this.store = store;
 		this.price = price;
 		this.size = size;
 		this.brand = brand;
+		this.count = count;
+		this.taste = taste;
 	}
 }
