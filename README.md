@@ -277,7 +277,7 @@ public ResponseEntity<ApiResult<LoginResponse>> socialLogin(@RequestBody SocialL
 + 컨트롤러와 서비스 계층의 결합도를 낮추어 테스트 용이성을 높였습니다.
 + Spring의 기능을 최대한 활용하여 구현 복잡도를 낮추고 코드 가독성을 높였습니다.
 
-### 4. 모바일 앱을 위환 인증 흐름 최적화
+### 4. 모바일 앱을 위한 인증 흐름 최적화
 
 문제 상황:
 
