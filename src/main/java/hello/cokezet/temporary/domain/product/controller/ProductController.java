@@ -6,6 +6,8 @@ import hello.cokezet.temporary.domain.store.entity.Store;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +33,7 @@ public class ProductController {
             price는 ml 당 가격입니다.
         """)
     @GetMapping
-    public ResponseEntity<List<GetProductResponse>> getProductList() {
+    public ResponseEntity<List<GetProductResponse>> getProductList(@ParameterObject PageRequest pageRequest) {
         List<GetProductResult> resultList = productService.getProductList();
 
         return ResponseEntity.ok(
@@ -58,7 +60,7 @@ public class ProductController {
             @Schema(defaultValue = "코카콜라", description = "브랜드")
             String brand,
             @Schema(defaultValue = "24", description = "묶음 갯수")
-            String count,
+            int count,
             @Schema(defaultValue = "라임", description = "맛")
             String taste
     ) { }

@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -39,12 +40,12 @@ public class StoreScheduler {
 	}
 
 	@Scheduled(cron = "0 0 12,23 * * *")
-	//@Scheduled(cron = "0 * * * * *")
+//	@Scheduled(cron = "0 * * * * *")
 	public void storeScheduler() {
 		Long systemTime = System.currentTimeMillis();
 
 		String uri = String.format(
-				"https://apis.11st.co.kr/search/api/tab/total-search/more/common?kwd=제로콜라&tabId=TOTAL_SEARCH&_=%d&commonPrdTotCnt=5453&pageNo=3"
+				"https://apis.11st.co.kr/search/api/tab/total-search/more/common?kwd=제로콜라&tabId=TOTAL_SEARCH&_=%d&commonPrdTotCnt=5453&pageNo=1"
 						+ "&prdMoreStartShowCnt=1000",
 				systemTime
 		);
@@ -64,7 +65,7 @@ public class StoreScheduler {
 		filteredItems.stream()
 			.filter(this::itemsValidator)
 			.filter(item -> item.has("unitPrcInfo") && item.get("unitPrcInfo").has("unitPrc"))
-			.filter(item -> !item.get("title").asText().contains("x"))
+			.filter(item -> !item.get("title").asText().contains("&"))
 			.forEach(item -> {
 				log.info("item: {}", item);
 
@@ -84,14 +85,14 @@ public class StoreScheduler {
 					return;
 				}
 
-				String count = item.get("title").asText();
+				Integer count = getCount(item.get("title").asText());
 				if (count == null) {
 					return;
 				}
 
-				String taste = item.get("title").asText();
+				String taste = getTaste(item.get("title").asText());
 				if (taste == null) {
-					return;
+					taste = "original";
 				}
 
 				Store store = storeRepository.findByName("11번가");
@@ -148,6 +149,29 @@ public class StoreScheduler {
 		}
 
 		return null; // 브랜드가 없는 경우
+	}
+
+	private Integer getCount(String originalTitle) {
+		Pattern pattern = Pattern.compile("\\b\\d{1,3}\\b"); // 최대 3자리 숫자 추출
+		Matcher matcher = pattern.matcher(originalTitle);
+
+		while (matcher.find()) {
+			int num = Integer.parseInt(matcher.group());
+			if (num <= 100) {
+				return num;
+			}
+		}
+		return null;
+	}
+
+	private String getTaste(String originalTitle) {
+		if (originalTitle.contains("라임")) {
+			return "라임";
+		} else if (originalTitle.contains("레몬")) {
+			return "레몬";
+		}
+
+		return null;
 	}
 }
 
