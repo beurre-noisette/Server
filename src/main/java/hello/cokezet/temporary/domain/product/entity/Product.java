@@ -13,7 +13,7 @@ public class Product {
 	private Long id = null;
 	@Column(nullable = false, unique = true)
 	private Long storeProductId;
-	@OneToOne
+	@ManyToOne
 	private Store store;
 	@Column(nullable = false)
 	private int price;
@@ -22,7 +22,7 @@ public class Product {
 	@Column(nullable = false)
 	private String brand;
 	@Column(nullable = false)
-	private String count;
+	private Integer count;
 	@Column(nullable = false)
 	private String taste;
 
@@ -33,7 +33,7 @@ public class Product {
 			Store store, int price,
 			String size,
 			String brand,
-			String count,
+			Integer count,
 			String taste
 	) {
 		this.storeProductId = storeProductId;

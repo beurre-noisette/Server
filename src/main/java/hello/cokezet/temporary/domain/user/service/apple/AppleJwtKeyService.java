@@ -22,14 +22,29 @@ public class AppleJwtKeyService {
         fetchAndCacheApplePublicKeys();
     }
 
+    /**
+     * 주어진 kid에 해당하는 Apple 공개 키를 반환합니다.
+     * 캐시에 없는 경우 Apple 서버에서 새로 가져옵니다.
+     */
     public JWK getPublicKey(String kid) {
         if (!publicKeys.containsKey(kid)) {
+            log.info("키 ID {}에 해당하는 키가 캐시에 없음, 새로 가져오기 시도", kid);
             fetchAndCacheApplePublicKeys();
         }
 
-        return publicKeys.get(kid);
+        JWK jwk = publicKeys.get(kid);
+        if (jwk != null) {
+            log.info("키 ID {}에 해당하는 키 조회 성공. 키 유형: {}", kid, jwk.getClass().getSimpleName());
+        } else {
+            log.warn("키 ID {}에 해당하는 키를 찾을 수 없음", kid);
+        }
+
+        return jwk;
     }
 
+    /**
+     * Apple 서버에서 공개 키를 가져와 캐시에 저장합니다.
+     */
     private void fetchAndCacheApplePublicKeys() {
         try {
             String response = restTemplate.getForObject(APPLE_PUBLIC_KEYS_URL, String.class);
