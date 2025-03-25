@@ -7,6 +7,7 @@ import hello.cokezet.temporary.domain.store_card_mapping.entity.StoreCardMapping
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ProductService {
@@ -23,6 +24,7 @@ public class ProductService {
 		List<Product> productList = productRepository.findAll();
 
 		return productList.stream()
+				.filter(product -> !Objects.equals(product.getBrand(), "펩시") && !Objects.equals(product.getTaste(), "original"))
 				.map(product -> {
 					return new GetProductResult(
 							product,
