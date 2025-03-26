@@ -28,7 +28,6 @@ public class ProductController {
         summary = "온라인 스토어 상품 조회 API",
         description = """
             11번가 상품을 조회합니다.
-            price는 ml 당 가격입니다.
         """)
     @GetMapping
     public ResponseEntity<List<GetProductResponse>> getProductList() {
