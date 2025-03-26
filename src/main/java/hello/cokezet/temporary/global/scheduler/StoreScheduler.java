@@ -12,7 +12,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -27,12 +26,7 @@ public class StoreScheduler {
 	private final ProductRepository productRepository;
 	private final StoreRepository storeRepository;
 
-	public StoreScheduler(
-			RestClient restClient,
-			ObjectMapper objectMapper,
-			ProductRepository productRepository,
-			StoreRepository storeRepository
-	) {
+	public StoreScheduler(RestClient restClient, ObjectMapper objectMapper, ProductRepository productRepository, StoreRepository storeRepository) {
 		this.objectMapper = objectMapper;
 		this.restClient = restClient;
 		this.productRepository = productRepository;
@@ -46,84 +40,71 @@ public class StoreScheduler {
 
 		String uri = String.format(
 				"https://apis.11st.co.kr/search/api/tab/total-search/more/common?kwd=제로콜라&tabId=TOTAL_SEARCH&_=%d&commonPrdTotCnt=5453&pageNo=1"
-						+ "&prdMoreStartShowCnt=1000",
-				systemTime
-		);
+						+ "&prdMoreStartShowCnt=1000", systemTime);
 
 		log.info("uri: {}", uri);
 
-		JsonNode storeResponse = restClient.get()
-				.uri(uri)
-				.retrieve()
-				.body(JsonNode.class);
+		JsonNode storeResponse = restClient.get().uri(uri).retrieve().body(JsonNode.class);
 
 		JsonNode items = Objects.requireNonNull(storeResponse).get("items");
 
 		// ✅ "items" 배열에서 개별 아이템 추출 후 필터링
-		List<JsonNode> filteredItems = objectMapper.convertValue(items, new TypeReference<>() {});
+		List<JsonNode> filteredItems = objectMapper.convertValue(items, new TypeReference<>() { });
 
-		filteredItems.stream()
-			.filter(this::itemsValidator)
-			.filter(item -> item.has("unitPrcInfo") && item.get("unitPrcInfo").has("unitPrc"))
-			.filter(item -> !item.get("title").asText().contains("&"))
-			.forEach(item -> {
-				log.info("item: {}", item);
+		filteredItems.stream().filter(this::itemsValidator).filter(item -> item.has("unitPrcInfo") && item.get("unitPrcInfo").has("unitPrc"))
+				.filter(item -> !item.get("title").asText().contains("&")).forEach(item -> {
+					log.info("item: {}", item);
 
-				if (productRepository.existsByStoreProductId(item.get("id").asLong())) {
-					return;
-				}
+					if (productRepository.existsByStoreProductId(item.get("id").asLong())) {
+						return;
+					}
 
-				log.info("item: {}", item.get("unitPrcInfo").asText());
+					log.info("item: {}", item.get("unitPrcInfo").asText());
 
-				String size = getSize(item.get("title").asText());
-				if (size == null) {
-					return;
-				}
+					String size = getSize(item.get("title").asText());
+					if (size == null) {
+						return;
+					}
 
-				String brand = getBrand(item.get("title").asText());
-				if (brand == null) {
-					return;
-				}
+					String brand = getBrand(item.get("title").asText());
+					if (brand == null) {
+						return;
+					}
 
-				Integer count = getCount(item.get("title").asText());
-				if (count == null) {
-					return;
-				}
+					Integer count = getCount(item.get("title").asText());
+					if (count == null) {
+						return;
+					}
 
-				String taste = getTaste(item.get("title").asText());
-				if (taste == null) {
-					taste = "original";
-				}
+					String taste = getTaste(item.get("title").asText());
+					if (taste == null) {
+						taste = "original";
+					}
 
-				Store store = storeRepository.findByName("11번가");
-				
-				productRepository.save(
-						new Product(
-								item.get("id").asLong(),
-								store,
-								item.get("unitPrcInfo").get("unitPrc").asInt(),
-								size,
-								brand,
-								count,
-								taste
-						));
-			});
+					Store store = storeRepository.findByName("11번가");
+
+					productRepository.save(
+							new Product(
+									item.get("id").asLong(),
+									store,
+									item.get("finalPrc").asInt(),
+									item.get("unitPrcInfo").get("unitPrc").asInt(),
+									item.get("discountRate").asInt(),
+									size,
+									brand,
+									count,
+									taste
+							)
+					);
+				});
 	}
 
 
 	// ✅ title이 null이면 빈 문자열("")을 반환하여 NPE 방지
 	private boolean itemsValidator(JsonNode items) {
 		String title = items.has("title") ? items.get("title").asText("") : "";
-		return title.contains("코카콜라 제로")
-				|| title.contains("펩시콜라제로")
-				|| title.contains("펩시 제로슈거")
-				|| title.contains("코크제로")
-				|| title.contains("콜라")
-				|| title.contains("펩시콜라 제로")
-				|| title.contains("펩시콜라 제로슈거")
-				|| title.contains("제로펩시 라임")
-				|| title.contains("제로 콜라")
-				|| title.contains("코카콜라제로");
+		return title.contains("코카콜라 제로") || title.contains("펩시콜라제로") || title.contains("펩시 제로슈거") || title.contains("코크제로") || title.contains("콜라")
+				|| title.contains("펩시콜라 제로") || title.contains("펩시콜라 제로슈거") || title.contains("제로펩시 라임") || title.contains("제로 콜라") || title.contains("코카콜라제로");
 	}
 
 	private String getSize(String originalTitle) {
