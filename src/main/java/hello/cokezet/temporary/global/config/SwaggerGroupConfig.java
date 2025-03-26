@@ -51,10 +51,9 @@ public class SwaggerGroupConfig {
         return GroupedOpenApi.builder()
                 .group("4. 온라인 스토어 API")
                 .pathsToMatch("/api/v1/products/**")
-                .packagesToScan("hello.cokezet.temporary.domain.product_and_card.controller")
                 .addOpenApiMethodFilter(method -> {
-                    // ProductAndCardRestController의 메서드만 포함
-                    return method.getDeclaringClass().getSimpleName().equals("ProductAndCardRestController");
+                    // ProductController의 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("ProductController");
                 })
                 .build();
     }

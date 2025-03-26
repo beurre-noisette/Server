@@ -24,16 +24,13 @@ public class ProductService {
 		List<Product> productList = productRepository.findAll();
 
 		return productList.stream()
-				.filter(product -> !Objects.equals(product.getBrand(), "펩시") && !Objects.equals(product.getTaste(), "original"))
-				.map(product -> {
-					return new GetProductResult(
-							product,
-							product.getStore()
-									.getStoreCardMappingList().stream()
-									.map(StoreCardMapping::getCard)
-									.toList()
-					);
-				})
+				.map(product -> new GetProductResult(
+						product,
+						product.getStore()
+								.getStoreCardMappingList().stream()
+								.map(StoreCardMapping::getCard)
+								.toList()
+				))
 				.toList();
 	}
 }

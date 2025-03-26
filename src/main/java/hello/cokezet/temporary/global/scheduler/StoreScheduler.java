@@ -50,6 +50,7 @@ public class StoreScheduler {
 
 		// ✅ "items" 배열에서 개별 아이템 추출 후 필터링
 		List<JsonNode> filteredItems = objectMapper.convertValue(items, new TypeReference<>() { });
+		Store store = storeRepository.findByName("11번가");
 
 		filteredItems.stream().filter(this::itemsValidator).filter(item -> item.has("unitPrcInfo") && item.get("unitPrcInfo").has("unitPrc"))
 				.filter(item -> !item.get("title").asText().contains("&")).forEach(item -> {
@@ -80,8 +81,6 @@ public class StoreScheduler {
 					if (taste == null) {
 						taste = "original";
 					}
-
-					Store store = storeRepository.findByName("11번가");
 
 					productRepository.save(
 							new Product(

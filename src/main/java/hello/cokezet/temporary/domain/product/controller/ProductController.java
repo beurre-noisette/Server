@@ -37,6 +37,8 @@ public class ProductController {
         return ResponseEntity.ok(
                         resultList.stream()
                         .map(result -> new GetProductResponse(
+                                result.product().getId(),
+                                result.product().getStoreProductId(),
                                 result.product().getStore(),
                                 result.product().getPrice(),
                                 result.product().getSize(),
@@ -49,7 +51,11 @@ public class ProductController {
     }
 
     public record GetProductResponse(
-            @Schema(description = "온라인 스토어")
+            @Schema(description = "zet 상품 ID", example = "1")
+            Long id,
+            @Schema(description = "온라인 스토어 상품 ID", example = "1")
+            Long storeProductId,
+            @Schema(description = "온라인 스토어", example = "11번가")
             Store store,
             @Schema(defaultValue = "1000", description = "ml 당 가격")
             int price,
