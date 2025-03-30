@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +55,12 @@ public class User extends BaseTimeEntity {
     )
     private Set<CardCompany> preferredCardCompanies = new HashSet<>();
 
+    @Column(nullable = false)
+    private boolean isDeleted = false;
+
+    @Column
+    private LocalDateTime deletedAt;
+
     public void updateProfile(String nickname) {
         this.nickname = nickname;
     }
@@ -76,6 +83,11 @@ public class User extends BaseTimeEntity {
 
     public boolean isProfileComplete() {
         return nickname != null && !nickname.isBlank() && !preferredCommerces.isEmpty() && !preferredCardCompanies.isEmpty();
+    }
+
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
     }
 
 }

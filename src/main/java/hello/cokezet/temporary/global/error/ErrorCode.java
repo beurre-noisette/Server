@@ -28,9 +28,13 @@ public enum ErrorCode {
     UNSUPPORTED_SOCIAL_TYPE(HttpStatus.BAD_REQUEST, "SOCIAL-001", "지원하지 않는 소셜 로그인 유형입니다"),
     SOCIAL_COMMUNICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "SOCIAL-002", "소셜 플랫폼 통신 오류가 발생했습니다"),
     INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, "SOCIAL-003", "유효하지 않은 소셜 토큰입니다"),
+    SOCIAL_REVOKE_FAILED(HttpStatus.BAD_REQUEST, "SOCIAL-004", "소셜 연결 해제 중 오류가 발생했습니다"),
 
     // 프로필 관련 에러
-    PROFILE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "PROFILE-001", "프로필 업데이트에 실패했습니다");
+    PROFILE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "PROFILE-001", "프로필 업데이트에 실패했습니다"),
+
+    // 회원탈퇴 관련 에러 코드 추가
+    ACCOUNT_DELETE_FAILED(HttpStatus.BAD_REQUEST, "ACCOUNT-001", "회원탈퇴 처리 중 오류가 발생했습니다");
 
     private final HttpStatus status;
 
