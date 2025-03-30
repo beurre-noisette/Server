@@ -1,11 +1,18 @@
 package hello.cokezet.temporary.global.config;
 
+import hello.cokezet.temporary.global.config.swagger.HeaderCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerGroupConfig {
+
+    private final HeaderCustomizer headerCustomizer;
+
+    public SwaggerGroupConfig(HeaderCustomizer headerCustomizer) {
+        this.headerCustomizer = headerCustomizer;
+    }
 
     @Bean
     public GroupedOpenApi authApi() {
@@ -17,6 +24,7 @@ public class SwaggerGroupConfig {
                     // AuthRestController의 메서드만 포함
                     return method.getDeclaringClass().getSimpleName().equals("AuthRestController");
                 })
+                .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
                 .build();
     }
 
@@ -30,6 +38,7 @@ public class SwaggerGroupConfig {
                     // UserRestController의 메서드만 포함
                     return method.getDeclaringClass().getSimpleName().equals("UserRestController");
                 })
+                .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
                 .build();
     }
 
