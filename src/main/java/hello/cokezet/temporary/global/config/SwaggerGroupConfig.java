@@ -32,7 +32,7 @@ public class SwaggerGroupConfig {
     public GroupedOpenApi guestApi() {
         return GroupedOpenApi.builder()
                 .group("2. 비회원 인증 API")
-                .pathsToMatch("/api/geust/**")
+                .pathsToMatch("/api/guest/**")
                 .packagesToScan("hello.cokezet.temporary.domain.user.controller")
                 .addOpenApiMethodFilter(method -> {
                     // GuestRestController 메서드만 포함
@@ -65,6 +65,19 @@ public class SwaggerGroupConfig {
                     // ProductController의 메서드만 포함
                     return method.getDeclaringClass().getSimpleName().equals("ProductController");
                 })
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi contentsApi() {
+        return GroupedOpenApi.builder()
+                .group("5. 컨텐츠 관련 API")
+                .pathsToMatch("/api/contents/**")
+                .addOpenApiMethodFilter(method -> {
+                    // ContentRestController 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("ContentRestController");
+                })
+                .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
                 .build();
     }
 }

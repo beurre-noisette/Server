@@ -34,7 +34,10 @@ public enum ErrorCode {
     PROFILE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "PROFILE-001", "프로필 업데이트에 실패했습니다"),
 
     // 회원탈퇴 관련 에러 코드 추가
-    ACCOUNT_DELETE_FAILED(HttpStatus.BAD_REQUEST, "ACCOUNT-001", "회원탈퇴 처리 중 오류가 발생했습니다");
+    ACCOUNT_DELETE_FAILED(HttpStatus.BAD_REQUEST, "ACCOUNT-001", "회원탈퇴 처리 중 오류가 발생했습니다"),
+
+    // 컨텐츠(공지사항, 서비스 이용약관, 개인정보 처리방침) 관련 에러
+    CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT-001", "요청한 콘텐츠를 찾을 수 없습니다");
 
     private final HttpStatus status;
 
