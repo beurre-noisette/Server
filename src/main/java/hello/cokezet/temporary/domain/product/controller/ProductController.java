@@ -6,8 +6,6 @@ import hello.cokezet.temporary.domain.store.entity.Store;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,15 +28,16 @@ public class ProductController {
         summary = "온라인 스토어 상품 조회 API",
         description = """
             11번가 상품을 조회합니다.
-            price는 ml 당 가격입니다.
         """)
     @GetMapping
-    public ResponseEntity<List<GetProductResponse>> getProductList(@ParameterObject PageRequest pageRequest) {
+    public ResponseEntity<List<GetProductResponse>> getProductList() {
         List<GetProductResult> resultList = productService.getProductList();
 
         return ResponseEntity.ok(
                         resultList.stream()
                         .map(result -> new GetProductResponse(
+                                result.product().getId(),
+                                result.product().getStoreProductId(),
                                 result.product().getStore(),
                                 result.product().getPrice(),
                                 result.product().getSize(),
@@ -51,7 +50,11 @@ public class ProductController {
     }
 
     public record GetProductResponse(
-            @Schema(description = "온라인 스토어")
+            @Schema(description = "zet 상품 ID", example = "1")
+            Long id,
+            @Schema(description = "온라인 스토어 상품 ID", example = "1")
+            Long storeProductId,
+            @Schema(description = "온라인 스토어", example = "11번가")
             Store store,
             @Schema(defaultValue = "1000", description = "ml 당 가격")
             int price,

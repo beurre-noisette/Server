@@ -1,11 +1,18 @@
 package hello.cokezet.temporary.global.config;
 
+import hello.cokezet.temporary.global.config.swagger.HeaderCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerGroupConfig {
+
+    private final HeaderCustomizer headerCustomizer;
+
+    public SwaggerGroupConfig(HeaderCustomizer headerCustomizer) {
+        this.headerCustomizer = headerCustomizer;
+    }
 
     @Bean
     public GroupedOpenApi authApi() {
@@ -17,6 +24,7 @@ public class SwaggerGroupConfig {
                     // AuthRestController의 메서드만 포함
                     return method.getDeclaringClass().getSimpleName().equals("AuthRestController");
                 })
+                .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
                 .build();
     }
 
@@ -30,31 +38,18 @@ public class SwaggerGroupConfig {
                     // UserRestController의 메서드만 포함
                     return method.getDeclaringClass().getSimpleName().equals("UserRestController");
                 })
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi testApi() {
-        return GroupedOpenApi.builder()
-                .group("3. 소셜로그인 테스트용 API")
-                .pathsToMatch("/api/test/**")
-                .packagesToScan("hello.cokezet.temporary.domain.user.controller")
-                .addOpenApiMethodFilter(method -> {
-                    // TestRestController의 메서드만 포함
-                    return method.getDeclaringClass().getSimpleName().equals("TestRestController");
-                })
+                .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
                 .build();
     }
 
     @Bean
     public GroupedOpenApi productAndCardApi() {
         return GroupedOpenApi.builder()
-                .group("4. 온라인 스토어 API")
-                .pathsToMatch("/api/v1/product_and_card/**")
-                .packagesToScan("hello.cokezet.temporary.domain.product_and_card.controller")
+                .group("3. 온라인 스토어 API")
+                .pathsToMatch("/api/v1/products/**")
                 .addOpenApiMethodFilter(method -> {
-                    // ProductAndCardRestController의 메서드만 포함
-                    return method.getDeclaringClass().getSimpleName().equals("ProductAndCardRestController");
+                    // ProductController의 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("ProductController");
                 })
                 .build();
     }
