@@ -17,7 +17,7 @@ public class SwaggerGroupConfig {
     @Bean
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
-                .group("1. 인증 API")
+                .group("1. 회원 인증 API")
                 .pathsToMatch("/api/auth/**")
                 .packagesToScan("hello.cokezet.temporary.domain.user.controller")
                 .addOpenApiMethodFilter(method -> {
@@ -29,9 +29,23 @@ public class SwaggerGroupConfig {
     }
 
     @Bean
+    public GroupedOpenApi guestApi() {
+        return GroupedOpenApi.builder()
+                .group("2. 비회원 인증 API")
+                .pathsToMatch("/api/guest/**")
+                .packagesToScan("hello.cokezet.temporary.domain.user.controller")
+                .addOpenApiMethodFilter(method -> {
+                    // GuestRestController 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("GuestRestController");
+                })
+                .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
+                .build();
+    }
+
+    @Bean
     public GroupedOpenApi userApi() {
         return GroupedOpenApi.builder()
-                .group("2. 사용자관련 API")
+                .group("3. 사용자관련 API")
                 .pathsToMatch("/api/users/**")
                 .packagesToScan("hello.cokezet.temporary.domain.user.controller")
                 .addOpenApiMethodFilter(method -> {
@@ -45,12 +59,25 @@ public class SwaggerGroupConfig {
     @Bean
     public GroupedOpenApi productAndCardApi() {
         return GroupedOpenApi.builder()
-                .group("3. 온라인 스토어 API")
+                .group("4. 온라인 스토어 API")
                 .pathsToMatch("/api/v1/products/**")
                 .addOpenApiMethodFilter(method -> {
                     // ProductController의 메서드만 포함
                     return method.getDeclaringClass().getSimpleName().equals("ProductController");
                 })
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi contentsApi() {
+        return GroupedOpenApi.builder()
+                .group("5. 컨텐츠 관련 API")
+                .pathsToMatch("/api/contents/**")
+                .addOpenApiMethodFilter(method -> {
+                    // ContentRestController 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("ContentRestController");
+                })
+                .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
                 .build();
     }
 }
