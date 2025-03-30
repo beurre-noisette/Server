@@ -1,9 +1,12 @@
 package hello.cokezet.temporary.domain.user.controller;
 
 import hello.cokezet.temporary.domain.user.dto.request.ProfileUpdateRequest;
+import hello.cokezet.temporary.domain.user.dto.request.SocialRevokeRequest;
 import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
 import hello.cokezet.temporary.domain.user.service.UserProfileService;
 import hello.cokezet.temporary.global.common.ApiResult;
+import hello.cokezet.temporary.global.error.ErrorCode;
+import hello.cokezet.temporary.global.error.exception.BusinessException;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,6 +59,24 @@ public class UserRestController {
         ProfileResponse response = userProfileService.getUserProfile(principal.getId());
 
         return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    @Operation(
+            summary = "회원 탈퇴",
+            description = "현재 로그인한 사용자의 계정을 탈퇴 처리합니다. 소셜 연결도 함께 해제됩니다."
+    )
+    @DeleteMapping("/profile")
+    public ResponseEntity<ApiResult<Void>> deleteAccount(@AuthenticationPrincipal UserPrincipal principal, @RequestBody SocialRevokeRequest request) {
+        log.info("회원탈퇴 요청: userId = {}, provider = {}", principal.getId(), request.getSocialProvider());
+
+        // 소셜 토큰은 필수 입력값
+        if (request.getIdToken() == null || request.getSocialProvider() == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "소셜 토큰과 제공자 정보는 필수입니다.");
+        }
+
+        userProfileService.deleteUserAccount(principal.getId(), request.getSocialProvider(), request.getIdToken());
+
+        return ResponseEntity.ok(ApiResult.success(null));
     }
 
     @GetMapping("/profile/status")
