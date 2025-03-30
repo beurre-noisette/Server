@@ -21,7 +21,7 @@ public class SocialRevokeRequest {
             allowableValues = {"GOOGLE, APPLE"})
     private SocialProvider socialProvider;
 
-    @Schema(description = "소셜 플랫폼에서 받은 ID 토큰",
-            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-    private String idToken;
+    @Schema(description = "구글 액세스 토큰 또는 애플 리프레시 토큰 (연결 해제용)",
+            example = "ya29.a0Ad...또는 ra0.a1bc...")
+    private String revokeToken;
 }

@@ -22,10 +22,7 @@ import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -172,10 +169,10 @@ public class UserProfileService {
      *
      * @param userId         탈퇴할 사용자 ID
      * @param socialProvider 소셜 로그인 제공자
-     * @param idToken    소셜 플랫폼 토큰
+     * @param revokeToken    연결 해제용 토큰 (구글: 액세스 토큰, 애플: 리프레쉬 토큰)
      */
     @Transactional
-    public void deleteUserAccount(Long userId, SocialProvider socialProvider, String idToken) {
+    public void deleteUserAccount(Long userId, SocialProvider socialProvider, String revokeToken) {
         try {
             // 1. 사용자 조회
             User user = userRepository.findById(userId).
@@ -187,7 +184,11 @@ public class UserProfileService {
                             "해당 소셜 계정으로 연결된 계정이 없습니다."));
 
             // 3. 소셜 연결 해제
-            revokeSocialConnection(socialProvider, idToken, socialAccount.getProviderId());
+            switch (socialProvider) {
+                case GOOGLE -> revokeGoogleConnection(revokeToken);
+                case APPLE -> revokeAppleConnection(revokeToken, socialAccount.getProviderId());
+                default -> throw new BusinessException(ErrorCode.UNSUPPORTED_SOCIAL_TYPE, "지원하지 않는 소셜 로그인 유형입니다.");
+            }
 
             // 4. 탈퇴 로그 저장
             saveUserDeletionLog(user, socialAccount);
@@ -209,40 +210,31 @@ public class UserProfileService {
     }
 
     /**
-     * 소셜 플랫폼과의 연결 해제
-     * 각 소셜 플랫폼의 API를 호출하여 사용자의 연결을 해제한다.
-     *
-     * @param socialProvider 소셜 로그인 제공자
-     * @param idToken 소셜 플랫폼 토큰
-     * @param providerId 소셜 플랫폼 사용자 ID
-     */
-    private void revokeSocialConnection(SocialProvider socialProvider, String idToken, String providerId) {
-        try {
-            switch (socialProvider) {
-                case GOOGLE -> revokeGoogleConnection(idToken);
-                case APPLE -> revokeAppleConnection(idToken, providerId);
-                default -> throw new BusinessException(ErrorCode.UNSUPPORTED_SOCIAL_TYPE, "지원하지 않는 소셜 로그인 유형입니다.");
-            }
-            log.info("소셜 로그인 연결 해제 성공: socialProvider = {}, providerId = {}", socialProvider, providerId);
-        } catch (Exception e) {
-            log.error("소셜 연결 해제 실패: {}", e.getMessage(), e);
-            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED, "소셜 연결 해제에 실패했습니다." + e.getMessage(), e);
-        }
-    }
-
-    /**
      * 구글 계정 연결 해제
      * 구글의 토큰 취소 API를 호출한다.
      * 
-     * @param idToken 구글 액세스 토큰
+     * @param accessToken 구글 액세스 토큰 (연결 해제용)
      */
-    private void revokeGoogleConnection(String idToken) {
-        final String revokeUrl = "https://accounts.google.com/o/oauth2/revoke?token=" + idToken;
+    private void revokeGoogleConnection(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
+                    "구글 연결 해제를 위한 액세스 토큰이 제공되지 않았습니다.");
+        }
+
+        final String revokeUrl = "https://accounts.google.com/o/oauth2/revoke?token=" + accessToken;
 
         try {
-            restTemplate.exchange(revokeUrl, HttpMethod.GET, null, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(revokeUrl, HttpMethod.GET, null, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("구글 계정 연결 해제 성공");
+            } else {
+                throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
+                        "구글 연결 해제 API 호출 실패: " + response.getStatusCode());
+            }
         } catch (Exception e) {
-            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED, "구글 연결 해제에 실패했습니다: " + e.getMessage(), e);
+            log.error("구글 연결 해제 중 예외 발생: {}", e.getMessage(), e);
+            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
+                    "구글 연결 해제에 실패했습니다: " + e.getMessage(), e);
         }
     }
 
@@ -250,10 +242,15 @@ public class UserProfileService {
      * 애플 계정 연결 해제
      * 애플의 토큰 취소 API를 호출한다
      *
-     * @param idToken 애플 토큰
+     * @param refreshToken 애플 리프레시 토큰 (연결 해제용)
      * @param providerId 애플 사용자 ID
      */
-    private void revokeAppleConnection(String idToken, String providerId) {
+    private void revokeAppleConnection(String refreshToken, String providerId) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
+                    "애플 연결 해제를 위한 리프레시 토큰이 제공되지 않았습니다.");
+        }
+
         try {
             // 애플 클라이언트 시크릿 생성
             String clientSecret = appleClientSecretService.generateClientSecret();
@@ -267,15 +264,22 @@ public class UserProfileService {
             MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
             body.add("client_id", appleClientId);
             body.add("client_secret", clientSecret);
-            body.add("token", idToken);
-            body.add("token_type_hint", "access_token");
+            body.add("token", refreshToken);
+            body.add("token_type_hint", "refresh_token");  // ID 토큰이 아닌 리프레시 토큰 사용
 
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-            restTemplate.exchange(revokeUrl, HttpMethod.POST, request, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(revokeUrl, HttpMethod.POST, request, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("애플 계정 연결 해제 성공: providerId={}", providerId);
+            } else {
+                throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
+                        "애플 연결 해제 API 호출 실패: " + response.getStatusCode());
+            }
         } catch (Exception e) {
+            log.error("애플 연결 해제 중 예외 발생: {}", e.getMessage(), e);
             throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
-                    "애플 연결 해제에 실패했습니다.: " + e.getMessage(), e);
+                    "애플 연결 해제에 실패했습니다: " + e.getMessage(), e);
         }
     }
 
