@@ -78,4 +78,27 @@ public class JwtProvider {
     public Date getExpirationDateFromToken(String token) {
         return getClaimsFromToken(token).getExpiration();
     }
+
+    /**
+     * 게스트용 액세스 토큰 생성
+     * 지정된 유효시간으로 토큰 생성
+     */
+    public String generateGuestAccessToken(Long userId, String email, long validityMillis) {
+        Map<String, Object> claims = new HashMap<>();
+
+        claims.put("id", userId);
+        claims.put("email", email);
+        claims.put("role", Role.GUEST.name());
+
+        long now = new Date().getTime();
+        Date validity = new Date(now + validityMillis);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(userId.toString())
+                .setIssuedAt(new Date(now))
+                .setExpiration(validity)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+    }
 }
