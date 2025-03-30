@@ -33,8 +33,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "api/guest/**").permitAll() // 인증 API는 모두 접근 가능
+                        .requestMatchers("/api/auth/**", "/api/guest/**").permitAll() // 인증 API는 모두 접근 가능
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(("/api/contents/**")).permitAll()
                         .requestMatchers("/api/v1/products").permitAll()
                         // NOTICE : 나머지는 인증 필요 (권한은 PreAuthorize로 제어)
                         .anyRequest().authenticated())
