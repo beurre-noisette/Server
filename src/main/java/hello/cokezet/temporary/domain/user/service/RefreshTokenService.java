@@ -44,7 +44,7 @@ public class RefreshTokenService {
                 .token(token)
                 .userId(userId)
                 .expiryDate(expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
-                .isUsed(false)
+                .used(false)
                 .build();
 
         return refreshTokenRepository.save(refreshToken);

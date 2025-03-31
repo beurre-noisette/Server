@@ -30,6 +30,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -309,15 +310,20 @@ public class UserProfileService {
      *
      * @param user 탈퇴할 사용자
      */
-    private void processDeletion(User user) {
+    @Transactional
+    protected void processDeletion(User user) {
         // 1. ManyToMany 관계 정리
         user.setPreferredCommerces(new HashSet<>());
         user.setPreferredCardCompanies(new HashSet<>());
 
-        // 2. 소프트 삭제 처리
+        // 2. 소셜 계정 리스트 비우기
+        List<SocialAccount> socialAccounts = socialAccountRepository.findByUser(user);
+        socialAccountRepository.deleteAll(socialAccounts);
+
+        // 3. 소프트 삭제 처리
         user.softDelete();
 
-        // 3. 저장
+        // 4. 저장
         userRepository.save(user);
     }
 }

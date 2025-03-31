@@ -28,7 +28,8 @@ public class RefreshToken extends BaseTimeEntity {
     private LocalDateTime expiryDate;
 
     @Setter
-    private boolean isUsed; // 토큰 사용 여부 (Rotation 확인용)
+    @Column(name = "is_used")
+    private boolean used; // 토큰 사용 여부 (Rotation 확인용)
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiryDate);

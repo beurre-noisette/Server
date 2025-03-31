@@ -25,7 +25,7 @@ public class Notice extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false)
-    private boolean isImportant;
+    @Column(name = "is_important", nullable = false)
+    private boolean important;
 }
 
