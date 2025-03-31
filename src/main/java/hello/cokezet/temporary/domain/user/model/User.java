@@ -17,7 +17,13 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_user_email_not_deleted",
+                columnNames = {"email", "is_deleted"}
+        )
+)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,7 +34,6 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
     private String email;
 
     private String nickname;
@@ -55,8 +60,8 @@ public class User extends BaseTimeEntity {
     )
     private Set<CardCompany> preferredCardCompanies = new HashSet<>();
 
-    @Column(nullable = false)
-    private boolean isDeleted = false;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false;
 
     @Column
     private LocalDateTime deletedAt;
@@ -86,7 +91,7 @@ public class User extends BaseTimeEntity {
     }
 
     public void softDelete() {
-        this.isDeleted = true;
+        this.deleted = true;
         this.deletedAt = LocalDateTime.now();
     }
 

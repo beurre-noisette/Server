@@ -22,4 +22,6 @@ public interface SocialAccountRepository extends JpaRepository<SocialAccount, Lo
      * @return 소셜 계정 정보
      */
     Optional<SocialAccount> findByUserAndProvider(User user, SocialProvider provider);
+
+    List<SocialAccount> findByUser(User user);
 }
