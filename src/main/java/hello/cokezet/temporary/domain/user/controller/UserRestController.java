@@ -1,13 +1,9 @@
 package hello.cokezet.temporary.domain.user.controller;
 
 import hello.cokezet.temporary.domain.user.dto.request.ProfileUpdateRequest;
-import hello.cokezet.temporary.domain.user.dto.request.SocialRevokeRequest;
 import hello.cokezet.temporary.domain.user.dto.response.ProfileResponse;
 import hello.cokezet.temporary.domain.user.service.UserProfileService;
 import hello.cokezet.temporary.global.common.ApiResult;
-import hello.cokezet.temporary.global.error.ErrorCode;
-import hello.cokezet.temporary.global.error.exception.BusinessException;
-import hello.cokezet.temporary.global.model.SocialProvider;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,30 +60,13 @@ public class UserRestController {
 
     @Operation(
             summary = "회원 탈퇴",
-            description = "현재 로그인한 사용자의 계정을 탈퇴 처리합니다. 소셜 연결도 함께 해제됩니다."
+            description = "현재 로그인한 사용자의 계정을 탈퇴 처리합니다."
     )
     @DeleteMapping("/profile")
-    public ResponseEntity<ApiResult<Void>> deleteAccount(@AuthenticationPrincipal UserPrincipal principal, @RequestBody SocialRevokeRequest request) {
-        log.info("회원탈퇴 요청: userId = {}, provider = {}", principal.getId(), request.getSocialProvider());
+    public ResponseEntity<ApiResult<Void>> deleteAccount(@AuthenticationPrincipal UserPrincipal principal) {
+        log.info("회원탈퇴 요청: userId = {}", principal.getId());
 
-        // 필수 입력값 검증
-        if (request.getSocialProvider() == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "소셜 토큰과 제공자 정보는 필수입니다.");
-        }
-
-        // 연결 해제 토큰(revokeToken) 검증
-        if (request.getRevokeToken() == null || request.getRevokeToken().isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE,
-                    request.getSocialProvider() == SocialProvider.GOOGLE
-                            ? "구글 연결 해제를 위한 액세스 토큰은 필수입니다."
-                            : "애플 연결 해제를 위한 리프레시 토큰은 필수입니다.");
-        }
-
-        userProfileService.deleteUserAccount(
-                principal.getId(),
-                request.getSocialProvider(),
-                request.getRevokeToken()
-        );
+        userProfileService.deleteUserAccount(principal.getId());
 
         return ResponseEntity.ok(ApiResult.success(null));
     }
