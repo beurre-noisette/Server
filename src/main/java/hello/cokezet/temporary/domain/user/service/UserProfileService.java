@@ -17,15 +17,11 @@ import hello.cokezet.temporary.domain.user.service.apple.AppleClientSecretServic
 import hello.cokezet.temporary.global.error.ErrorCode;
 import hello.cokezet.temporary.global.error.exception.BusinessException;
 import hello.cokezet.temporary.global.error.exception.UserNotFoundException;
-import hello.cokezet.temporary.global.model.SocialProvider;
 import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -44,8 +40,6 @@ public class UserProfileService {
     private final SocialAccountRepository socialAccountRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserDeletionLogRepository userDeletionLogRepository;
-    private final RestTemplate restTemplate;
-    private final AppleClientSecretService appleClientSecretService;
 
     @Value("${apple.client-id}")
     private String appleClientId;
@@ -57,8 +51,6 @@ public class UserProfileService {
         this.socialAccountRepository = socialAccountRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.userDeletionLogRepository = userDeletionLogRepository;
-        this.restTemplate = restTemplate;
-        this.appleClientSecretService = appleClientSecretService;
     }
 
     @Transactional
@@ -169,119 +161,26 @@ public class UserProfileService {
      * 사용자 정보를 소트프 삭제하고 소셜 플랫폼과의 연결을 해제합니다
      *
      * @param userId         탈퇴할 사용자 ID
-     * @param socialProvider 소셜 로그인 제공자
-     * @param revokeToken    연결 해제용 토큰 (구글: 액세스 토큰, 애플: 리프레쉬 토큰)
      */
     @Transactional
-    public void deleteUserAccount(Long userId, SocialProvider socialProvider, String revokeToken) {
-        try {
-            // 1. 사용자 조회
-            User user = userRepository.findById(userId).
-                    orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    public void deleteUserAccount(Long userId) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
-            // 2. 소셜 계정 정보 조회
-            SocialAccount socialAccount = socialAccountRepository.findByUserAndProvider(user, socialProvider)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE,
-                            "해당 소셜 계정으로 연결된 계정이 없습니다."));
-
-            // 3. 소셜 연결 해제
-            switch (socialProvider) {
-                case GOOGLE -> revokeGoogleConnection(revokeToken);
-                case APPLE -> revokeAppleConnection(revokeToken, socialAccount.getProviderId());
-                default -> throw new BusinessException(ErrorCode.UNSUPPORTED_SOCIAL_TYPE, "지원하지 않는 소셜 로그인 유형입니다.");
-            }
-
-            // 4. 탈퇴 로그 저장
-            saveUserDeletionLog(user, socialAccount);
-
-            // 5. 리프레쉬 토큰 삭제
-            refreshTokenRepository.deleteByUserId(userId);
-
-            // 6. 사용자 데이터 처리 (소프트 삭제 및 관계 정리)
-            processDeletion(user);
-
-            log.info("사용자 ID {} 탈퇴 처리 완료", userId);
-        } catch (Exception e) {
-            if (e instanceof BusinessException) {
-                throw e;
-            }
-            log.error("회원탈퇴 처리 중 오류 발생: {}", e.getMessage(), e);
-            throw new BusinessException(ErrorCode.ACCOUNT_DELETE_FAILED, "회원탈퇴 처리 중 오류가 발생했습니다.");
-        }
-    }
-
-    /**
-     * 구글 계정 연결 해제
-     * 구글의 토큰 취소 API를 호출한다.
-     * 
-     * @param accessToken 구글 액세스 토큰 (연결 해제용)
-     */
-    private void revokeGoogleConnection(String accessToken) {
-        if (accessToken == null || accessToken.isBlank()) {
-            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
-                    "구글 연결 해제를 위한 액세스 토큰이 제공되지 않았습니다.");
+        // 2. 소셜 계정 정보 (로그 저장용)
+        List<SocialAccount> socialAccounts = socialAccountRepository.findByUser(user);
+        for (SocialAccount account : socialAccounts) {
+            saveUserDeletionLog(user, account);
         }
 
-        final String revokeUrl = "https://accounts.google.com/o/oauth2/revoke?token=" + accessToken;
+        // 3. 리프레시 토큰 삭제
+        refreshTokenRepository.deleteByUserId(userId);
 
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(revokeUrl, HttpMethod.GET, null, String.class);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("구글 계정 연결 해제 성공");
-            } else {
-                throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
-                        "구글 연결 해제 API 호출 실패: " + response.getStatusCode());
-            }
-        } catch (Exception e) {
-            log.error("구글 연결 해제 중 예외 발생: {}", e.getMessage(), e);
-            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
-                    "구글 연결 해제에 실패했습니다: " + e.getMessage(), e);
-        }
-    }
+        // 4. 사용자 데이터 소프트 삭제 처리
+        processDeletion(user);
 
-    /**
-     * 애플 계정 연결 해제
-     * 애플의 토큰 취소 API를 호출한다
-     *
-     * @param refreshToken 애플 리프레시 토큰 (연결 해제용)
-     * @param providerId 애플 사용자 ID
-     */
-    private void revokeAppleConnection(String refreshToken, String providerId) {
-        if (refreshToken == null || refreshToken.isBlank()) {
-            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
-                    "애플 연결 해제를 위한 리프레시 토큰이 제공되지 않았습니다.");
-        }
-
-        try {
-            // 애플 클라이언트 시크릿 생성
-            String clientSecret = appleClientSecretService.generateClientSecret();
-
-            // 애플 토큰 취소 요청
-            final String revokeUrl = "https://appleid.apple.com/auth/revoke";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-            body.add("client_id", appleClientId);
-            body.add("client_secret", clientSecret);
-            body.add("token", refreshToken);
-            body.add("token_type_hint", "refresh_token");  // ID 토큰이 아닌 리프레시 토큰 사용
-
-            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(revokeUrl, HttpMethod.POST, request, String.class);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("애플 계정 연결 해제 성공: providerId={}", providerId);
-            } else {
-                throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
-                        "애플 연결 해제 API 호출 실패: " + response.getStatusCode());
-            }
-        } catch (Exception e) {
-            log.error("애플 연결 해제 중 예외 발생: {}", e.getMessage(), e);
-            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED,
-                    "애플 연결 해제에 실패했습니다: " + e.getMessage(), e);
-        }
+        log.info("사용자 ID {} 탈퇴 처리 완료", userId);
     }
 
     /**
