@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -33,9 +34,12 @@ public class RefreshTokenService {
 
     @Transactional
     public RefreshToken createRefreshToken(Long userId) {
-        // 기존 토큰이 있으면 삭제 (한 계정당 하나의 로그인 유지)
-        refreshTokenRepository.deleteByUserId(userId);
-        
+        // 락을 획득하여 동시 접근 제어
+        Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findByUserIdWithLock(userId);
+
+        // 기존 토큰이 있으면 삭제
+        existingRefreshToken.ifPresent(refreshTokenRepository::delete);
+
         // 새 리프레시 토큰 생성
         String token = jwtProvider.generateRefreshToken();
         Date expiration = jwtProvider.getExpirationDateFromToken(token);
