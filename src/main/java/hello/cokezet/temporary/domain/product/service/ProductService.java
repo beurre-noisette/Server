@@ -7,7 +7,6 @@ import hello.cokezet.temporary.domain.store_card_mapping.entity.StoreCardMapping
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class ProductService {
@@ -21,7 +20,7 @@ public class ProductService {
 	}
 
 	public List<GetProductResult> getProductList() {
-		List<Product> productList = productRepository.findAll();
+		List<Product> productList = productRepository.findAllAndCard();
 
 		return productList.stream()
 				.map(product -> new GetProductResult(
