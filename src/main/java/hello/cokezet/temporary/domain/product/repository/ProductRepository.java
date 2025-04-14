@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+	boolean existsByStoreProductId(Long storeProductId);
+
 	@Query("""
 			SELECT p
 			FROM Product p
