@@ -10,6 +10,7 @@ import lombok.Getter;
 public class StoreCardMapping {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
