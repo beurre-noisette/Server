@@ -80,4 +80,16 @@ public class SwaggerGroupConfig {
                 .addOperationCustomizer(headerCustomizer.customizeWithRequiredHeaders()) // 헤더 설정 추가
                 .build();
     }
+    
+    @Bean
+    public GroupedOpenApi conveniencePromotionApi() {
+        return GroupedOpenApi.builder()
+                .group("6. 편의점 프로모션 API")
+                .pathsToMatch("/api/promotions/**")
+                .addOpenApiMethodFilter(method -> {
+                    // ContentRestController 메서드만 포함
+                    return method.getDeclaringClass().getSimpleName().equals("PromotionRestController");
+                })
+                .build();
+    }
 }
