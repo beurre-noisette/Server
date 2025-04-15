@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코크제트 프로모션 조회</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        .product-group {
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .product-group h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .coca-cola-group {
+            background-color: #f8f9fa;
+        }
+
+        .pepsi-group {
+            background-color: #e9ecef;
+        }
+
+        .no-data-message {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 1.2em;
+            color: #6c757d;
+        }
+
+        .navbar-nav .nav-link.active {
+            font-weight: bold;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .promotion-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .one-plus-one {
+            background-color: #d1e7dd;
+            color: #146c43;
+        }
+
+        .two-plus-one {
+            background-color: #cfe2ff;
+            color: #0a58ca;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>코크제트 프로모션 조회</h1>
+        <a th:href="@{/admin/logout}" class="btn btn-secondary">로그아웃</a>
+    </div>
+
+    <!-- 네비게이션 메뉴 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:href="@{/admin/promotions(store=${selectedStore},year=${selectedYear},month=${selectedMonth})}">프로모션
+                            등록</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" th:href="@{/admin/promotions/view}">프로모션 조회</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 날짜 선택 -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form id="dateForm" method="get" th:action="@{/admin/promotions/view}">
+                <input type="hidden" name="store" th:value="${selectedStore}"/>
+                <div class="row">
+                    <div class="col-md-4">
+                        <select class="form-select" name="year" id="year" onchange="this.form.submit()">
+                            <option th:each="year : ${years}"
+                                    th:value="${year}"
+                                    th:text="${year + '년'}"
+                                    th:selected="${year == selectedYear}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" name="month" id="month" onchange="this.form.submit()">
+                            <option th:each="month : ${months}"
+                                    th:value="${month}"
+                                    th:text="${month + '월'}"
+                                    th:selected="${month == selectedMonth}"></option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 편의점 탭 -->
+    <ul class="nav nav-tabs" id="storeTabs">
+        <li class="nav-item" th:each="store : ${stores}">
+            <a class="nav-link" th:classappend="${selectedStore == store.name ? 'active' : ''}"
+               th:href="@{/admin/promotions/view(store=${store.name},year=${selectedYear},month=${selectedMonth})}"
+               th:text="${store.name}"></a>
+        </li>
+    </ul>
+
+    <!-- 데이터 없음 메시지 -->
+    <div th:if="${!hasPromotionData}" class="no-data-message">
+        <p>등록된 프로모션 정보가 없습니다.</p>
+    </div>
+
+    <!-- 프로모션 정보 표시 -->
+    <div th:if="${hasPromotionData}">
+        <!-- 코카콜라 제품 그룹 -->
+        <div th:if="${!cocaPromotions.isEmpty()}" class="product-group coca-cola-group mt-4">
+            <h3>코카콜라 제품</h3>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>제품명</th>
+                    <th>용량</th>
+                    <th>행사 타입</th>
+                    <th>가격</th>
+                    <th>액션</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${cocaPromotions}">
+                    <td th:text="${product.name}"></td>
+                    <td th:text="${product.size}"></td>
+                    <td>
+                        <span th:if="${product.promotionType.name() == 'ONE_PLUS_ONE'}" class="promotion-badge one-plus-one">1+1</span>
+                        <span th:if="${product.promotionType.name() == 'TWO_PLUS_ONE'}" class="promotion-badge two-plus-one">2+1</span>
+                    </td>
+                    <td th:text="${product.price != null ? #numbers.formatInteger(product.price, 0, 'COMMA') + '원' : '-'}"></td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a th:href="@{/admin/promotions(store=${selectedStore},year=${selectedYear},month=${selectedMonth})}"
+                               class="btn btn-sm btn-outline-primary">수정</a>
+                            <a th:href="@{/admin/promotions/delete(store=${selectedStore},year=${selectedYear},month=${selectedMonth},productId=${product.id})}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('이 프로모션을 삭제하시겠습니까?');">삭제</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 펩시 제품 그룹 -->
+        <div th:if="${!pepsiPromotions.isEmpty()}" class="product-group pepsi-group mt-4">
+            <h3>펩시 제품</h3>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>제품명</th>
+                    <th>용량</th>
+                    <th>행사 타입</th>
+                    <th>가격</th>
+                    <th>액션</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${pepsiPromotions}">
+                    <td th:text="${product.name}"></td>
+                    <td th:text="${product.size}"></td>
+                    <td>
+                        <span th:if="${product.promotionType.name() == 'ONE_PLUS_ONE'}" class="promotion-badge one-plus-one">1+1</span>
+                        <span th:if="${product.promotionType.name() == 'TWO_PLUS_ONE'}" class="promotion-badge two-plus-one">2+1</span>
+                    </td>
+                    <td th:text="${product.price != null ? #numbers.formatInteger(product.price, 0, 'COMMA') + '원' : '-'}"></td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a th:href="@{/admin/promotions(store=${selectedStore},year=${selectedYear},month=${selectedMonth})}"
+                               class="btn btn-sm btn-outline-primary">수정</a>
+                            <a th:href="@{/admin/promotions/delete(store=${selectedStore},year=${selectedYear},month=${selectedMonth},productId=${product.id})}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('이 프로모션을 삭제하시겠습니까?');">삭제</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
