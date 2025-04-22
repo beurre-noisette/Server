@@ -2,7 +2,6 @@ package hello.cokezet.temporary.domain.product.controller;
 
 import hello.cokezet.temporary.domain.product.service.ProductService;
 import hello.cokezet.temporary.domain.product.service.data.GetProductResult;
-import hello.cokezet.temporary.domain.store.entity.Store;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
