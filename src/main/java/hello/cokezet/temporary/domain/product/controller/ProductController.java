@@ -1,10 +1,13 @@
 package hello.cokezet.temporary.domain.product.controller;
 
+import hello.cokezet.temporary.domain.product.controller.dto.request.GetProductListRequest;
 import hello.cokezet.temporary.domain.product.service.ProductService;
 import hello.cokezet.temporary.domain.product.service.data.GetProductResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +32,9 @@ public class ProductController {
             11번가 상품을 조회합니다.
         """)
     @GetMapping
-    public ResponseEntity<List<GetProductResponse>> getProductList() {
+    public ResponseEntity<List<GetProductResponse>> getProductList(
+            @Valid @ParameterObject GetProductListRequest request
+    ) {
         List<GetProductResult> resultList = productService.getProductList();
 
         return ResponseEntity.ok(

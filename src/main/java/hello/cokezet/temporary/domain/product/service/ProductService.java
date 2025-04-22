@@ -19,7 +19,7 @@ public class ProductService {
 	private final StoreCardMappingRepository storeCardMappingRepository;
 
 	public ProductService(
-			ProductRepository productRepository, CardRepository cardRepository,
+			ProductRepository productRepository,
 			StoreCardMappingRepository storeCardMappingRepository
 	) {
 		this.productRepository = productRepository;
