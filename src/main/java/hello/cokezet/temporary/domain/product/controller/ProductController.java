@@ -36,14 +36,17 @@ public class ProductController {
         return ResponseEntity.ok(
                         resultList.stream()
                         .map(result -> new GetProductResponse(
-                                result.product().getId(),
-                                result.product().getStoreProductId(),
-                                result.product().getStore(),
-                                result.product().getPrice(),
-                                result.product().getSize(),
-                                result.product().getBrand(),
-                                result.product().getCount(),
-                                result.product().getTaste()
+                                result.id(),
+                                result.storeProductId(),
+                                result.price(),
+                                result.pricePerMl(),
+                                result.discountRate(),
+                                result.size(),
+                                result.brand(),
+                                result.count(),
+                                result.taste(),
+                                result.storeName(),
+                                result.cardNameList()
                         ))
                         .toList()
         );
@@ -51,13 +54,15 @@ public class ProductController {
 
     public record GetProductResponse(
             @Schema(description = "zet 상품 ID", example = "1")
-            Long id,
+            Long productId,
             @Schema(description = "온라인 스토어 상품 ID", example = "1")
             Long storeProductId,
-            @Schema(description = "온라인 스토어", example = "11번가")
-            Store store,
-            @Schema(defaultValue = "1000", description = "ml 당 가격")
+            @Schema(defaultValue = "1000", description = "가격")
             int price,
+            @Schema(defaultValue = "154", description = "미리당 가격")
+            int pricePerMl,
+            @Schema(defaultValue = "10", description = "할인율")
+            int discountRate,
             @Schema(defaultValue = "500ml", description = "용량")
             String size,
             @Schema(defaultValue = "코카콜라", description = "브랜드")
@@ -65,6 +70,10 @@ public class ProductController {
             @Schema(defaultValue = "24", description = "묶음 갯수")
             int count,
             @Schema(defaultValue = "라임", description = "맛")
-            String taste
+            String taste,
+            @Schema(description = "온라인 스토어", example = "11번가")
+            String storeName,
+            @Schema(description = "카드사 목록", example = "신한카드, 삼성카드")
+            List<String> cardNameList
     ) { }
 }
