@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://zet-2.c3s6mmmia1ss.ap-northeast-2.rds.amazonaws.com:3306/crate?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: admin
-    password: daf6JaPZjCqafrdwAF1m
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
