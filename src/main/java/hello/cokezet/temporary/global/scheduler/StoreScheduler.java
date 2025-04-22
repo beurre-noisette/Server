@@ -85,7 +85,7 @@ public class StoreScheduler {
 					productRepository.save(
 							new Product(
 									item.get("id").asLong(),
-									store,
+									store.getId(),
 									item.get("finalPrc").asInt(),
 									item.get("unitPrcInfo").get("unitPrc").asInt(),
 									item.get("discountRate").asInt(),

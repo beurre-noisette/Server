@@ -13,8 +13,8 @@ public class Product {
 	private Long id = null;
 	@Column(nullable = false, unique = true)
 	private Long storeProductId;
-	@ManyToOne
-	private Store store;
+	@Column(nullable = false)
+	private Long storeId;
 	@Column(nullable = false)
 	private int price;
 	@Column(nullable = false)
@@ -34,7 +34,7 @@ public class Product {
 
 	public Product(
 			Long storeProductId,
-			Store store,
+			Long storeId,
 			int price,
 			int pricePerMl,
 			int discountRate,
@@ -45,7 +45,7 @@ public class Product {
 
 	) {
 		this.storeProductId = storeProductId;
-		this.store = store;
+		this.storeId = storeId;
 		this.price = price;
 		this.pricePerMl = pricePerMl;
 		this.discountRate = discountRate;
