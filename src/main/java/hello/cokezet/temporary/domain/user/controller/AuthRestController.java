@@ -13,6 +13,7 @@ import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +39,7 @@ public class AuthRestController {
             description = "Google 또는 Apple의 ID 토큰을 사용하여 인증하고 서버측의 JWT 토큰(Access, Refresh)을 발급받습니다."
     )
     @PostMapping("/login")
-    public ResponseEntity<ApiResult<LoginResponse>> socialLogin(@RequestBody SocialLoginRequest request) {
+    public ResponseEntity<ApiResult<LoginResponse>> socialLogin(@ParameterObject @RequestBody SocialLoginRequest request) {
         log.info("로그인 요청: provider={}", request.getProvider());
 
         SocialLoginService loginService = socialLoginFactory.getLoginService(request.getProvider());
