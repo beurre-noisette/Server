@@ -27,6 +27,7 @@ public class CardCompany extends BaseTimeEntity {
     private String name;
 
     @ManyToMany(mappedBy = "preferredCardCompanies")
+    @Builder.Default
     private Set<User> preferringUsers = new HashSet<>();
 
 }

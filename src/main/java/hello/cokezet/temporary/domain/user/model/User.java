@@ -42,6 +42,7 @@ public class User extends BaseTimeEntity {
     private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<SocialAccount> socialAccounts = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -50,6 +51,7 @@ public class User extends BaseTimeEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "commerce_id")
     )
+    @Builder.Default
     private Set<Commerce> preferredCommerces = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -58,9 +60,11 @@ public class User extends BaseTimeEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "card_company_id")
     )
+    @Builder.Default
     private Set<CardCompany> preferredCardCompanies = new HashSet<>();
 
     @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
     private boolean deleted = false;
 
     @Column
