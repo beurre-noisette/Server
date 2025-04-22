@@ -72,7 +72,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/guest/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/contents/**").permitAll()
-                        .requestMatchers("/api/v1/products").permitAll()
+                        .requestMatchers("/api/v1/products/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .accessDeniedHandler(customAccessDeniedHandler))

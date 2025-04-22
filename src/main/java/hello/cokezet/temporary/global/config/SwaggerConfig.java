@@ -17,20 +17,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    private final HeaderCustomizer headerCustomizer;
-
-    public SwaggerConfig(HeaderCustomizer headerCustomizer) {
-        this.headerCustomizer = headerCustomizer;
-    }
-
-    @Value("${springdoc.server-url}")
-    private String serverUrl;
-
     @Bean
     public OpenAPI openAPI() {
         String securitySchemeName = "bearerAuth";
 
-        OpenAPI openAPI = new OpenAPI()
+        return new OpenAPI()
                 .info(new Info()
                         .title("CokeZet API")
                         .description("CokeZet API 문서")
@@ -44,16 +35,5 @@ public class SwaggerConfig {
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")));
-
-        if (!serverUrl.isEmpty()) {
-            openAPI.addServersItem(new Server().url(serverUrl));
-        }
-
-        return openAPI;
-    }
-
-    @Bean
-    public OperationCustomizer customGlobalHeaders() {
-        return headerCustomizer.customizeWithRequiredHeaders();
     }
 }

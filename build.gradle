@@ -60,20 +60,3 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
-
-sourceSets {
-    main {
-        java {
-            srcDir querydslDir
-        }
-    }
-}
-
-compileJava {
-    options.compilerArgs += [
-            "-Aquerydsl.entityAccessors=true",
-            "-Aquerydsl.useFields=false"
-    ]
-}
