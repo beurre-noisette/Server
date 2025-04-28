@@ -123,7 +123,6 @@ public class PromotionService {
                             product.getId(),
                             product.getName(),
                             product.getSize(),
-                            product.getType().getDisplayName(),
                             promotion.getPromotionType(),
                             promotion.getPrice()
                     );
