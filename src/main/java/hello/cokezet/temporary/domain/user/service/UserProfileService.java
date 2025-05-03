@@ -21,6 +21,7 @@ import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -160,34 +161,45 @@ public class UserProfileService {
      * 회원 탈퇴 처리
      * 사용자 정보를 소트프 삭제하고 소셜 플랫폼과의 연결을 해제합니다
      *
-     * @param userId         탈퇴할 사용자 ID
+     * @param userId 탈퇴할 사용자 ID
      */
     @Transactional
     public void deleteUserAccount(Long userId) {
-        // 1. 사용자 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        try {
+            // 1. 사용자 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
-        // 2. 소셜 계정 정보 (로그 저장용)
-        List<SocialAccount> socialAccounts = socialAccountRepository.findByUser(user);
-        for (SocialAccount account : socialAccounts) {
-            saveUserDeletionLog(user, account);
+            // 2. 소셜 계정 정보 (로그 저장용) & 탈퇴 로그 저장
+            List<SocialAccount> socialAccounts = socialAccountRepository.findByUser(user);
+            for (SocialAccount account : socialAccounts) {
+                saveUserDeletionLog(user, account);
+            }
+
+            // 3. 리프레시 토큰 삭제
+            refreshTokenRepository.deleteByUserId(userId);
+
+            // 4. 사용자 관련 데이터 정리 (ManyToMany 관계, 소셜 계정 등)
+            cleanupUserRelations(user);
+
+            // 5. USER테이블에서 사용자 하드 삭제
+            userRepository.delete(user);
+
+            log.info("사용자 ID {} 탈퇴 처리 완료", userId);
+        } catch (DataIntegrityViolationException e) {
+            log.error("사용자 삭제 중 데이터 무결성 위반: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.ACCOUNT_DELETE_FAILED, "회원 탈퇴 처리 중 데이터 무결성 오류가 발생했습니다. 참조 중인 데이터가 있는지 확인하세요.");
+        } catch (Exception e) {
+            log.error("회원 탈퇴 처리 중 오류: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.ACCOUNT_DELETE_FAILED, "회원 탈퇴 처리 중 오류가 발생했습니다: ");
         }
-
-        // 3. 리프레시 토큰 삭제
-        refreshTokenRepository.deleteByUserId(userId);
-
-        // 4. 사용자 데이터 소프트 삭제 처리
-        processDeletion(user);
-
-        log.info("사용자 ID {} 탈퇴 처리 완료", userId);
     }
 
     /**
      * 사용자 탈퇴 로그 저장
      * 탈퇴한 사용자의 정보를 로그 테이블에 기록한다
      *
-     * @param user 탈퇴할 사용자
+     * @param user          탈퇴할 사용자
      * @param socialAccount 소셜 계정 정보
      */
     private void saveUserDeletionLog(User user, SocialAccount socialAccount) {
@@ -203,26 +215,13 @@ public class UserProfileService {
         userDeletionLogRepository.save(userDeletionLog);
     }
 
-    /**
-     * 사용자 데이터 처리 (소프트 삭제 및 관계 정리)
-     * ManyToMany 관계를 정리하고 사용자를 소프트 삭제한다
-     *
-     * @param user 탈퇴할 사용자
-     */
-    @Transactional
-    protected void processDeletion(User user) {
+    protected void cleanupUserRelations(User user) {
         // 1. ManyToMany 관계 정리
         user.setPreferredCommerces(new HashSet<>());
         user.setPreferredCardCompanies(new HashSet<>());
 
-        // 2. 소셜 계정 리스트 비우기
+        // 2. 소셜 계정 삭제
         List<SocialAccount> socialAccounts = socialAccountRepository.findByUser(user);
         socialAccountRepository.deleteAll(socialAccounts);
-
-        // 3. 소프트 삭제 처리
-        user.softDelete();
-
-        // 4. 저장
-        userRepository.save(user);
     }
 }
