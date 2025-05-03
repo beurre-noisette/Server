@@ -20,8 +20,8 @@ import java.util.Set;
 @Table(
         name = "users",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_user_email_not_deleted",
-                columnNames = {"email", "is_deleted"}
+                name = "uk_user_email",
+                columnNames = {"email"}
         )
 )
 @Getter
@@ -63,13 +63,6 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private Set<CardCompany> preferredCardCompanies = new HashSet<>();
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private boolean deleted = false;
-
-    @Column
-    private LocalDateTime deletedAt;
-
     public void updateProfile(String nickname) {
         this.nickname = nickname;
     }
@@ -92,11 +85,6 @@ public class User extends BaseTimeEntity {
 
     public boolean isProfileComplete() {
         return nickname != null && !nickname.isBlank() && !preferredCommerces.isEmpty() && !preferredCardCompanies.isEmpty();
-    }
-
-    public void softDelete() {
-        this.deleted = true;
-        this.deletedAt = LocalDateTime.now();
     }
 
 }
