@@ -1,30 +1,13 @@
 spring:
   application:
     name: cokeZet
+  config:
+    import:
+      - classpath:config/application-database.yml
+      - classpath:config/application-jwt.yml
+      - classpath:config/application-oauth.yml
   profiles:
-    include: oauth, database, jwt
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-# 기본 Swagger 설정, (개발환경용)
-springdoc:
-  api-docs:
-    path: /api-docs
-  server-url: ${SERVER_URL:http://localhost:8080}
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-    tags-sorter: alpha
-    operations-sorter: alpha
-  packages-to-scan: hello.cokezet.temporary.domain
-  paths-to-match: /api/**
-
-logging:
-  level:
-    hello.cokezet: DEBUG
+    group:
+      local: oauth, database, jwt
+      dev: oauth, database, jwt
+      prod: oauth, database, jwt

@@ -12,10 +12,6 @@ public class StoreCardMapping {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
-    private Store store;
-
-    @ManyToOne
-    private Card card;
+    private Long storeId;
+    private Long cardId;
 }

@@ -1,13 +1,19 @@
 package hello.cokezet.temporary.domain.product.controller;
 
+import hello.cokezet.temporary.domain.product.controller.dto.request.GetProductListRequest;
+import hello.cokezet.temporary.domain.product.controller.dto.response.GetProductResponse;
 import hello.cokezet.temporary.domain.product.service.ProductService;
 import hello.cokezet.temporary.domain.product.service.data.GetProductResult;
-import hello.cokezet.temporary.domain.store.entity.Store;
+import hello.cokezet.temporary.domain.product.service.data.ProductAndStoreAndCard;
+import hello.cokezet.temporary.domain.product.service.data.ProductAndStoreAndCardAndUrl;
+import hello.cokezet.temporary.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,41 +36,48 @@ public class ProductController {
             11번가 상품을 조회합니다.
         """)
     @GetMapping
-    public ResponseEntity<List<GetProductResponse>> getProductList() {
-        List<GetProductResult> resultList = productService.getProductList();
+    public ResponseEntity<ApiResult<List<GetProductResponse>>> getProductList(
+            @Valid @ParameterObject GetProductListRequest request
+    ) {
+        List<GetProductResult> resultList = productService.getProductList(request);
 
-        return ResponseEntity.ok(
-                        resultList.stream()
+        return ResponseEntity.ok(ApiResult.success(
+                resultList.stream()
                         .map(result -> new GetProductResponse(
-                                result.product().getId(),
-                                result.product().getStoreProductId(),
-                                result.product().getStore(),
-                                result.product().getPrice(),
-                                result.product().getSize(),
-                                result.product().getBrand(),
-                                result.product().getCount(),
-                                result.product().getTaste()
+                                result.id(),
+                                result.storeProductId(),
+                                result.price(),
+                                result.pricePerMl(),
+                                result.discountRate(),
+                                result.size(),
+                                result.brand(),
+                                result.count(),
+                                result.taste(),
+                                result.storeName(),
+                                result.cardNameList()
                         ))
                         .toList()
+                )
+
         );
     }
 
-    public record GetProductResponse(
-            @Schema(description = "zet 상품 ID", example = "1")
-            Long id,
-            @Schema(description = "온라인 스토어 상품 ID", example = "1")
-            Long storeProductId,
-            @Schema(description = "온라인 스토어", example = "11번가")
-            Store store,
-            @Schema(defaultValue = "1000", description = "ml 당 가격")
-            int price,
-            @Schema(defaultValue = "500ml", description = "용량")
-            String size,
-            @Schema(defaultValue = "코카콜라", description = "브랜드")
-            String brand,
-            @Schema(defaultValue = "24", description = "묶음 갯수")
-            int count,
-            @Schema(defaultValue = "라임", description = "맛")
-            String taste
-    ) { }
+    @GetMapping("/{productId}")
+    @Operation(
+        summary = "온라인 스토어 상품 상세 조회 API",
+        description = """
+            11번가 상품을 상세 조회합니다.
+        """)
+    public ResponseEntity<ApiResult<ProductAndStoreAndCardAndUrl>> getProduct(
+            @PathVariable("productId") Long productId
+    ) {
+        ProductAndStoreAndCardAndUrl result = productService.getProduct(productId);
+
+        return ResponseEntity.ok(
+                ApiResult.success(
+                    result
+                )
+        );
+    }
+
 }

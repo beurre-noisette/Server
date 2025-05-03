@@ -18,7 +18,4 @@ public class Store {
 
     @Column(nullable = false, unique = true)
     private String name;
-
-    @OneToMany(mappedBy = "store")
-    List<StoreCardMapping> storeCardMappingList = new ArrayList<>();
 }

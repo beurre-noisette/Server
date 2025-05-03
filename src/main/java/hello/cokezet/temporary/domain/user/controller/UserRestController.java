@@ -8,6 +8,7 @@ import hello.cokezet.temporary.global.security.jwt.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ public class UserRestController {
     @PostMapping("/profile")
     public ResponseEntity<ApiResult<Void>> updateProfile(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestBody ProfileUpdateRequest request
+            @ParameterObject @RequestBody ProfileUpdateRequest request
     ) {
 
         log.info("프로필 업데이트 요청: userId = {}", principal.getId());

@@ -2,10 +2,8 @@ package hello.cokezet.temporary.domain.promotion.controller;
 
 import hello.cokezet.temporary.domain.promotion.dto.response.StorePromotions;
 import hello.cokezet.temporary.domain.promotion.service.PromotionService;
+import hello.cokezet.temporary.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,17 +24,10 @@ public class PromotionRestController {
 
     @Operation(
             summary = "프로모션 정보 조회",
-            description = "연도와 월을 기준으로 편의점별 제로콜라 프로모션 정보를 조회합니다. 파라미터가 없으면 현재 연월의 정보를 조회합니다.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "조회 성공",
-                            content = @Content(schema = @Schema(implementation = StorePromotions.class))
-                    )
-            }
+            description = "연도와 월을 기준으로 편의점별 제로콜라 프로모션 정보를 조회합니다. 파라미터가 없으면 현재 연월의 정보를 조회합니다."
     )
     @GetMapping
-    public ResponseEntity<StorePromotions> getPromotions(
+    public ResponseEntity<ApiResult<StorePromotions>> getPromotions(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) {
@@ -48,6 +39,6 @@ public class PromotionRestController {
 
         StorePromotions promotions = promotionService.getPromotionsForClient(selectedYear, selectedMonth);
 
-        return ResponseEntity.ok(promotions);
+        return ResponseEntity.ok(ApiResult.success(promotions));
     }
 }

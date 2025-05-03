@@ -21,9 +21,6 @@ public class PromotionInfo {
     @Schema(description = "용량", example = "500ml")
     private String size;
 
-    @Schema(description = "브랜드", example = "코카콜라")
-    private String brand;
-
     @Schema(description = "프로모션 타입", example = "ONE_PLUS_ONE")
     private PromotionType promotionType;
 

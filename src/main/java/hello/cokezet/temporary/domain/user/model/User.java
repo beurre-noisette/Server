@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,8 +19,8 @@ import java.util.Set;
 @Table(
         name = "users",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_user_email_not_deleted",
-                columnNames = {"email", "is_deleted"}
+                name = "uk_user_email",
+                columnNames = {"email"}
         )
 )
 @Getter
@@ -42,6 +41,7 @@ public class User extends BaseTimeEntity {
     private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<SocialAccount> socialAccounts = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -50,6 +50,7 @@ public class User extends BaseTimeEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "commerce_id")
     )
+    @Builder.Default
     private Set<Commerce> preferredCommerces = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -58,13 +59,8 @@ public class User extends BaseTimeEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "card_company_id")
     )
+    @Builder.Default
     private Set<CardCompany> preferredCardCompanies = new HashSet<>();
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false;
-
-    @Column
-    private LocalDateTime deletedAt;
 
     public void updateProfile(String nickname) {
         this.nickname = nickname;
@@ -88,11 +84,6 @@ public class User extends BaseTimeEntity {
 
     public boolean isProfileComplete() {
         return nickname != null && !nickname.isBlank() && !preferredCommerces.isEmpty() && !preferredCardCompanies.isEmpty();
-    }
-
-    public void softDelete() {
-        this.deleted = true;
-        this.deletedAt = LocalDateTime.now();
     }
 
 }
