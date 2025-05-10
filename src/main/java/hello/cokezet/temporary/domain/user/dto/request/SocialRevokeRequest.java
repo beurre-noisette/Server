@@ -13,15 +13,28 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "소셜 연결 해제 요청 DTO")
+@Schema(
+        description = "소셜 연결 해제 요청 DTO",
+        title = "SocialRevokeRequest",
+        requiredProperties = {"socialProvider", "revokeToken"}
+)
 public class SocialRevokeRequest {
 
-    @Schema(description = "소셜 로그인 제공자",
-            examples = "GOOGLE",
-            allowableValues = {"GOOGLE, APPLE"})
+    @Schema(
+            description = "소셜 로그인 제공자 (GOOGLE 또는 APPLE)",
+            type = "string",
+            allowableValues = {"GOOGLE", "APPLE"},
+            example = "GOOGLE"
+    )
     private SocialProvider socialProvider;
 
-    @Schema(description = "구글 액세스 토큰 또는 애플 리프레시 토큰 (연결 해제용)",
-            example = "ya29.a0Ad...또는 ra0.a1bc...")
+    @Schema(
+            description = "소셜 플랫폼 연결 해제에 필요한 토큰. " +
+                    "Google의 경우 액세스 토큰(Access Token)을, " +
+                    "Apple의 경우 리프레시 토큰(Refresh Token)을 제공해야 합니다. " +
+                    "이 토큰은 클라이언트에서 소셜 로그인 과정에서 받은 토큰을 사용합니다.",
+            type = "string",
+            example = "ya29.a0AfB_byDXozBy..."
+    )
     private String revokeToken;
 }

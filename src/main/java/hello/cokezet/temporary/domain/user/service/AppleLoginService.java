@@ -8,13 +8,17 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import hello.cokezet.temporary.domain.user.dto.request.SocialRevokeRequest;
 import hello.cokezet.temporary.domain.user.dto.response.LoginResponse;
 import hello.cokezet.temporary.domain.user.model.RefreshToken;
 import hello.cokezet.temporary.domain.user.model.SocialAccount;
 import hello.cokezet.temporary.domain.user.model.User;
 import hello.cokezet.temporary.domain.user.repository.SocialAccountRepository;
 import hello.cokezet.temporary.domain.user.repository.UserRepository;
+import hello.cokezet.temporary.domain.user.service.apple.AppleClientSecretService;
 import hello.cokezet.temporary.domain.user.service.apple.AppleJwtKeyService;
+import hello.cokezet.temporary.global.error.ErrorCode;
+import hello.cokezet.temporary.global.error.exception.BusinessException;
 import hello.cokezet.temporary.global.error.exception.InvalidSocialTokenException;
 import hello.cokezet.temporary.global.model.Role;
 import hello.cokezet.temporary.global.model.SocialProvider;
@@ -22,7 +26,15 @@ import hello.cokezet.temporary.global.security.jwt.JwtProvider;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.util.Base64;
@@ -30,22 +42,29 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class AppleLoginService implements SocialLoginService {
+public class AppleLoginService implements SocialDisconnectService {
 
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final AppleJwtKeyService appleJwtKeyService;
+    private final AppleClientSecretService appleClientSecretService;
+    private final RestTemplate restTemplate;
+
+    private static final String APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
 
     public AppleLoginService(UserRepository userRepository, SocialAccountRepository socialAccountRepository,
                              JwtProvider jwtProvider, RefreshTokenService refreshTokenService,
-                             AppleJwtKeyService appleJwtKeyService) {
+                             AppleJwtKeyService appleJwtKeyService, AppleClientSecretService appleClientSecretService,
+                             RestTemplate restTemplate) {
         this.userRepository = userRepository;
         this.socialAccountRepository = socialAccountRepository;
         this.jwtProvider = jwtProvider;
         this.refreshTokenService = refreshTokenService;
         this.appleJwtKeyService = appleJwtKeyService;
+        this.appleClientSecretService = appleClientSecretService;
+        this.restTemplate = restTemplate;
     }
 
     @Value("${apple.client-id}")
@@ -54,6 +73,62 @@ public class AppleLoginService implements SocialLoginService {
     @Override
     public SocialProvider getSocialProvider() {
         return SocialProvider.APPLE;
+    }
+
+    /**
+     * Apple 계정과의 연결을 해제합니다.
+     * Apple OAuth 토큰 취소 API를 호출하여 사용자의 리프레시 토큰을 무효화합니다.
+     *
+     * @param socialAccount 연결 해제할 소셜 계정 정보
+     * @param request 연결 해제에 필요한 요청 정보 (리프레시 토큰)
+     * @return 연결 해제 성공 여부
+     */
+    @Override
+    public boolean revoke(SocialAccount socialAccount, SocialRevokeRequest request) {
+        if (socialAccount.getProvider() != SocialProvider.APPLE) {
+            log.error("잘못된 소셜 제공자: 예상={}, 실제={}", SocialProvider.APPLE, socialAccount.getProvider());
+            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED, "Apple 계정만 해제할 수 있습니다.");
+        }
+
+        try {
+            // 클라이언트 시크릿 생성
+            String clientSecret = appleClientSecretService.generateClientSecret();
+
+            // 요청 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            // 요청 파라미터 설정
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("client_id", appleClientId);
+            params.add("client_secret", clientSecret);
+            params.add("token", request.getRevokeToken());
+            params.add("token_type_hint", "refresh_token");
+
+            // HTTP 요청 생성 및 전송
+            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
+            ResponseEntity<Void> response = restTemplate.postForEntity(APPLE_REVOKE_URL, requestEntity, Void.class);
+
+            // 응답 확인
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Apple 계정 연결 해제 성공: providerId={}", socialAccount.getProviderId());
+                return true;
+            } else {
+                log.error("Apple 계정 연결 해제 실패: providerId={}, statusCode={}", 
+                        socialAccount.getProviderId(), response.getStatusCode());
+                return false;
+            }
+        } catch (RestClientException e) {
+            log.error("Apple 계정 연결 해제 중 오류 발생: providerId={}, error={}", 
+                    socialAccount.getProviderId(), e.getMessage(), e);
+            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED, 
+                    "Apple 계정 연결 해제 중 오류가 발생했습니다: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Apple 클라이언트 시크릿 생성 중 오류 발생: providerId={}, error={}", 
+                    socialAccount.getProviderId(), e.getMessage(), e);
+            throw new BusinessException(ErrorCode.SOCIAL_REVOKE_FAILED, 
+                    "Apple 계정 연결 해제를 위한 인증 정보 생성 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 
     @Override
